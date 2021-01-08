@@ -5,8 +5,7 @@ Programme principale du SpaceInvader
 Eliott RAJAUD et Axel GUILLET
 18/12/20
 TODO : Faire le menu
-    Faire classe alien
-    Faire classe vaisseau
+
 
 """
 
@@ -72,7 +71,6 @@ class Alien():
         space.after(500,self.deplacementAlien)
 
 
-
 class Vaisseau():
     def __init__(self,canvas):
         self.can = canvas
@@ -100,20 +98,20 @@ class Vaisseau():
     def laser(self,event):
         if self.present == 0:
             self.Xl = self.Xv
-            self.tir = self.can.create_rectangle(self.Xl,self.Yl-self.vaisseau.height()-30,self.Xl+10,self.Yl-self.vaisseau.height(),fill='blue')
-            self.deplacementLaser()
+            tir = self.can.create_rectangle(self.Xl,self.Yl-self.vaisseau.height()-30,self.Xl+10,self.Yl-self.vaisseau.height(),fill='blue')
+            self.deplacementLaser(tir)
 
 
-    def deplacementLaser(self):
+    def deplacementLaser(self,tir):
         if self.Yl == 0:
-            self.can.delete(self.tir)
+            self.can.delete(tir)
             self.present = 0
             self.Yl = self.Yv
         else:
             self.present = 1
             self.Yl -= self.dy
-            self.can.coords(self.tir, self.Xl,self.Yl-self.vaisseau.height()-30,self.Xl+10,self.Yl-self.vaisseau.height())
-            space.after(20, self.deplacementLaser)
+            self.can.coords(tir, self.Xl,self.Yl-self.vaisseau.height()-30,self.Xl+10,self.Yl-self.vaisseau.height())
+            space.after(20, self.deplacementLaser(tir))
 
 space = space_invader()
 
