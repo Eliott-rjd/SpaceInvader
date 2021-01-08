@@ -6,7 +6,9 @@ Eliott RAJAUD et Axel GUILLET
 18/12/20
 TODO : Faire le menu
     Mettre role, entree sortie de toutes les fcts
-
+    Regler probleme du spam demarrer
+    faire fichier a part avec les classes et et autres avec la creation TkInter
+    MOdifier le progr a fct
 """
 
 from tkinter import Tk,Label,Canvas,Button,StringVar,PhotoImage
@@ -31,12 +33,14 @@ class space_invader(Tk):
         self.labelVie = Label(self, text = 'Vies = 3')
 
         self.buttonQuit = Button(self , text = 'Quitter' , fg = 'red' , command = self.destroy)
+        self.buttonReplay = Button(self, text = 'Rejouer' , command =self.rejouer )
 
         self.newGame = Button(self, text = 'Démarrer une partie', command = self.init_partie)
 
         self.labelScore.grid(row = 1, column = 1, sticky = 'w')
         self.labelVie.grid(row = 1, column = 2, sticky = 'e')
         self.newGame.grid(row = 2, column = 3, rowspan = 1, sticky = 'e')
+        self.buttonReplay.grid(row = 2, column = 4, rowspan = 1, sticky = "e")
         self.buttonQuit.grid(row = 3, column = 3, rowspan = 1, sticky = "e")
         self.can.grid(row = 2 , column = 1, rowspan = 2, columnspan = 2,  sticky = "w")
 
@@ -46,7 +50,7 @@ class space_invader(Tk):
         self.bind("<Left>",C_Vaisseau.déplacementVaisseau_left)
         self.bind("<Right>",C_Vaisseau.déplacementVaisseau_right)
         self.bind("<space>",C_Vaisseau.laser)
-
+        
 
 class Alien():
     def __init__(self):
@@ -54,6 +58,7 @@ class Alien():
         self.X  = 0
         self.Y  = 0
         self.dx = 10
+        
         self.alien = PhotoImage(file = 'alien.gif')
         self.imgAlien = self.can.create_image(self.X, self.Y, anchor ='nw',image = self.alien)
 
@@ -64,13 +69,16 @@ class Alien():
 
         if self.X + self.dx< 0:
             self.dx = -self.dx
+            self.Y += self.alien.height()
         self.X += self.dx
 
         self.can.coords(self.imgAlien,self.X,self.Y)
         space.after(500,self.deplacementAlien)
 
-
-
+       # if self.Y >= space.hauteur/2:
+        #    self.can.delete(C_Vaisseau.imgVaisseau)
+            
+            
 class Vaisseau():
     def __init__(self):
         self.can = space.can
@@ -98,12 +106,12 @@ class Vaisseau():
     def laser(self,event):
         if self.present == 0:
             self.Xl = self.Xv
-            self.tir = self.can.create_rectangle(self.Xl,self.Yl-self.vaisseau.height()-10,self.Xl+1,self.Yl-self.vaisseau.height(),fill='blue')
+            self.tir = self.can.create_rectangle(self.Xl+self.vaisseau.width()/2-2, self.Yl-self.vaisseau.height()-30, self.Xl+self.vaisseau.width()/2+2, self.Yl-self.vaisseau.height(),fill='blue')
             self.deplacementLaser()
 
 
     def deplacementLaser(self):
-        if self.Yl == 0:
+        if self.Yl <= 0:
             self.can.delete(self.tir)
             self.present = 0
             self.Yl = self.Yv
@@ -112,17 +120,21 @@ class Vaisseau():
             self.can.delete(self.tir)
             self.can.delete(C_Alien.imgAlien)
             self.present = 0
-            self.Yl = self.Yv      
+            self.Yl = self.Yv
+
             
         else:
             self.present = 1
             self.Yl -= self.dy
 
-            self.can.coords(self.tir, self.Xl,self.Yl-self.vaisseau.height()-30,self.Xl+10,self.Yl-self.vaisseau.height())
+            self.can.coords(self.tir, self.Xl+self.vaisseau.width()/2-2, self.Yl-self.vaisseau.height()-30, self.Xl+self.vaisseau.width()/2+2, self.Yl-self.vaisseau.height())
             space.after(20, self.deplacementLaser)
 
+#def rejouer():
 space = space_invader()
 C_Alien = Alien()
 C_Vaisseau = Vaisseau()
 
 space.mainloop()
+    
+#rejouer()
