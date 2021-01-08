@@ -5,8 +5,7 @@ Programme principale du SpaceInvader
 Eliott RAJAUD et Axel GUILLET
 18/12/20
 TODO : Faire le menu
-    Faire classe alien
-    Faire classe vaisseau
+    Mettre role, entree sortie de toutes les fcts
 
 """
 
@@ -42,8 +41,7 @@ class space_invader(Tk):
         self.can.grid(row = 2 , column = 1, rowspan = 2, columnspan = 2,  sticky = "w")
 
     def init_partie(self):
-        C_Alien = Alien(self.can)
-        C_Vaisseau = Vaisseau(self.can)
+        
         C_Alien.deplacementAlien()
         self.bind("<Left>",C_Vaisseau.déplacementVaisseau_left)
         self.bind("<Right>",C_Vaisseau.déplacementVaisseau_right)
@@ -51,8 +49,8 @@ class space_invader(Tk):
 
 
 class Alien():
-    def __init__(self,canvas):
-        self.can = canvas
+    def __init__(self):
+        self.can = space.can
         self.X  = 0
         self.Y  = 0
         self.dx = 10
@@ -74,8 +72,8 @@ class Alien():
 
 
 class Vaisseau():
-    def __init__(self,canvas):
-        self.can = canvas
+    def __init__(self):
+        self.can = space.can
         self.Xv = space.longueur/2
         self.Yv = space.hauteur
         self.vaisseau = PhotoImage(file = 'vaisseau.gif')
@@ -100,7 +98,7 @@ class Vaisseau():
     def laser(self,event):
         if self.present == 0:
             self.Xl = self.Xv
-            self.tir = self.can.create_rectangle(self.Xl,self.Yl-self.vaisseau.height()-30,self.Xl+10,self.Yl-self.vaisseau.height(),fill='blue')
+            self.tir = self.can.create_rectangle(self.Xl,self.Yl-self.vaisseau.height()-10,self.Xl+1,self.Yl-self.vaisseau.height(),fill='blue')
             self.deplacementLaser()
 
 
@@ -109,12 +107,22 @@ class Vaisseau():
             self.can.delete(self.tir)
             self.present = 0
             self.Yl = self.Yv
+            
+        elif (C_Alien.X <= self.can.coords(self.tir)[0] <= C_Alien.X + C_Alien.alien.width()) and (C_Alien.Y <= self.can.coords(self.tir)[1] <= C_Alien.alien.height()):
+            self.can.delete(self.tir)
+            self.can.delete(C_Alien.imgAlien)
+            self.present = 0
+            self.Yl = self.Yv      
+            
         else:
             self.present = 1
             self.Yl -= self.dy
+
             self.can.coords(self.tir, self.Xl,self.Yl-self.vaisseau.height()-30,self.Xl+10,self.Yl-self.vaisseau.height())
             space.after(20, self.deplacementLaser)
 
 space = space_invader()
+C_Alien = Alien()
+C_Vaisseau = Vaisseau()
 
 space.mainloop()
