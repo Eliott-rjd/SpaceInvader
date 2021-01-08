@@ -5,15 +5,10 @@ Programme principale du SpaceInvader
 Eliott RAJAUD et Axel GUILLET
 18/12/20
 TODO : Faire le menu
-<<<<<<< HEAD
-
-
-=======
     Mettre role, entree sortie de toutes les fcts
     Regler probleme du spam demarrer
     faire fichier a part avec les classes et et autres avec la creation TkInter
     MOdifier le progr a fct
->>>>>>> 0cb5399cfbd663f83ffa66944aa0eb8020b32e6c
 """
 
 from tkinter import Tk,Label,Canvas,Button,StringVar,PhotoImage
@@ -80,14 +75,10 @@ class Alien():
         self.can.coords(self.imgAlien,self.X,self.Y)
         space.after(500,self.deplacementAlien)
 
-<<<<<<< HEAD
-
-=======
        # if self.Y >= space.hauteur/2:
         #    self.can.delete(C_Vaisseau.imgVaisseau)
             
             
->>>>>>> 0cb5399cfbd663f83ffa66944aa0eb8020b32e6c
 class Vaisseau():
     def __init__(self):
         self.can = space.can
@@ -115,15 +106,6 @@ class Vaisseau():
     def laser(self,event):
         if self.present == 0:
             self.Xl = self.Xv
-<<<<<<< HEAD
-            tir = self.can.create_rectangle(self.Xl,self.Yl-self.vaisseau.height()-30,self.Xl+10,self.Yl-self.vaisseau.height(),fill='blue')
-            self.deplacementLaser(tir)
-
-
-    def deplacementLaser(self,tir):
-        if self.Yl == 0:
-            self.can.delete(tir)
-=======
             self.tir = self.can.create_rectangle(self.Xl+self.vaisseau.width()/2-2, self.Yl-self.vaisseau.height()-30, self.Xl+self.vaisseau.width()/2+2, self.Yl-self.vaisseau.height(),fill='blue')
             self.deplacementLaser()
 
@@ -131,7 +113,6 @@ class Vaisseau():
     def deplacementLaser(self):
         if self.Yl <= 0:
             self.can.delete(self.tir)
->>>>>>> 0cb5399cfbd663f83ffa66944aa0eb8020b32e6c
             self.present = 0
             self.Yl = self.Yv
             
@@ -145,14 +126,8 @@ class Vaisseau():
         else:
             self.present = 1
             self.Yl -= self.dy
-<<<<<<< HEAD
-            self.can.coords(tir, self.Xl,self.Yl-self.vaisseau.height()-30,self.Xl+10,self.Yl-self.vaisseau.height())
-            space.after(20, self.deplacementLaser(tir))
-=======
-
             self.can.coords(self.tir, self.Xl+self.vaisseau.width()/2-2, self.Yl-self.vaisseau.height()-30, self.Xl+self.vaisseau.width()/2+2, self.Yl-self.vaisseau.height())
             space.after(20, self.deplacementLaser)
->>>>>>> 0cb5399cfbd663f83ffa66944aa0eb8020b32e6c
 
 #def rejouer():
 space = space_invader()
