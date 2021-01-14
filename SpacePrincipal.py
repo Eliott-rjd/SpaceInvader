@@ -50,6 +50,7 @@ class space_invader(Tk):
         self.can.grid(row = 2 , column = 1, rowspan = 2, columnspan = 2,  sticky = "w")
         self.L_Alien = []
         self.L_Vaisseau = []
+        self.démarrer = 0
         self.Liste_classe_init()
         self.ilots()
 
@@ -71,14 +72,15 @@ class space_invader(Tk):
             self.L_Alien.append(C_Alien)
 
     def init_partie(self):
-        for i in range(0,6):
-            self.L_Alien[i].deplacementAlien()
-            self.L_Alien[i].laser()
-        self.bind("<Left>",C_Vaisseau.déplacementVaisseau_left)
-        self.bind("<Right>",C_Vaisseau.déplacementVaisseau_right)
-        self.bind("<space>",C_Vaisseau.laser)
-        self.text2.set("Lifes : "+str(C_Vaisseau.vie))
-
+        if self.démarrer == 0:
+            for i in range(0,6):
+                self.L_Alien[i].deplacementAlien()
+                self.L_Alien[i].laser()
+            self.bind("<Left>",C_Vaisseau.déplacementVaisseau_left)
+            self.bind("<Right>",C_Vaisseau.déplacementVaisseau_right)
+            self.bind("<space>",C_Vaisseau.laser)
+            self.text2.set("Lifes : "+str(C_Vaisseau.vie))
+            self.démarrer = 1
 
 class Alien():
     def __init__(self,canvas,X,Y):
@@ -136,7 +138,7 @@ class Alien():
 
             else:
                 self.can.coords(self.imgAlien,self.X,self.Y)
-                space.after(40,self.deplacementAlien)
+                space.after(200,self.deplacementAlien)
 
     def laser(self):
         if self.stop == 0 and self.present == 0:
