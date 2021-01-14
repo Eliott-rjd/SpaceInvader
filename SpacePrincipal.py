@@ -6,14 +6,15 @@ Eliott RAJAUD et Axel GUILLET
 18/12/20
 TODO : Faire le menu
     Mettre role, entree sortie de toutes les fcts
-    Regler probleme du spam demarrer
     faire fichier a part avec les classes et autres avec la creation TkInter
     Modifier le progr a fct
     Erreur d'index lors du tir du laser du vaisseau à corriger (erreur sans conséquence sur le jeu du moins)
 """
 
-from tkinter import Tk,Label,Canvas,Button,StringVar,PhotoImage
+from tkinter import Tk,Label,Canvas,Button,StringVar,PhotoImage,messagebox
 import random as rd
+#from ClassVaisseau import Vaisseau
+#from ClassAlien import Alien
 
 class space_invader(Tk):
     def __init__(self):
@@ -67,15 +68,21 @@ class space_invader(Tk):
                 self.L.extend([L_a,L_b,L_c])
 
     def Liste_classe_init(self):
-        for i in range(0,6):
-            C_Alien = Alien(self.can,i*60,0)
-            self.L_Alien.append(C_Alien)
+        for j in range(0,3):
+            L = []
+            for i in range(0,6):
+                C_Alien = Alien(self.can,i*60,j*60)
+                L.append(C_Alien)
+                self.L_Alien.append(L)
+        print(L)
+            
 
     def init_partie(self):
         if self.démarrer == 0:
-            for i in range(0,6):
-                self.L_Alien[i].deplacementAlien()
-                self.L_Alien[i].laser()
+            for k in range(0,len(self.L_Alien)):
+                for i in range(0,len(self.L_Alien[k])):
+                    self.L_Alien[k][i].deplacementAlien()
+                    self.L_Alien[k][i].laser()
             self.bind("<Left>",C_Vaisseau.déplacementVaisseau_left)
             self.bind("<Right>",C_Vaisseau.déplacementVaisseau_right)
             self.bind("<space>",C_Vaisseau.laser)
@@ -103,15 +110,18 @@ class Alien():
 
     def deplacementAlien(self):
         if self.stop == 0:
-            if space.L_Alien[len(space.L_Alien)-1].X+space.L_Alien[len(space.L_Alien)-1].dx+space.L_Alien[len(space.L_Alien)-1].alien.width() > space.longueur:
-                for i in range(self.ind,len(space.L_Alien)):
-                    space.L_Alien[i].toucher_droit = 1
-                if self.ind != len(space.L_Alien)-1:
-                    for i in range(len(space.L_Alien)):
-                        space.L_Alien[i].ind += 1
-                else:
-                    for i in range(len(space.L_Alien)):
-                        space.L_Alien[i].ind = 0
+            self.toucher_droit = 0
+            for k in range(0,len(space.L_Alien)):
+                if (space.L_Alien[k])[len(space.L_Alien[k])-1].X+(space.L_Alien[k])[len(space.L_Alien[k])-1].dx+(space.L_Alien[k])[len(space.L_Alien[k])-1].alien.width() > space.longueur:
+                    for i in range(self.ind,len(space.L_Alien[k])):
+                        if self.toucher_droit == 0:
+                            space.L_Alien[k][i].toucher_droit = 1
+                    if self.ind != len(space.L_Alien[k])-1:
+                        for i in range(len(space.L_Alien[k])):
+                            space.L_Alien[k][i].ind += 1
+                    else:
+                        for i in range(len(space.L_Alien[k])):
+                            space.L_Alien[k][i].ind = 0
 
             if self.X + self.dx< 0:
                 for i in range(len(space.L_Alien)):
@@ -132,13 +142,14 @@ class Alien():
                 self.can.delete(C_Vaisseau.imgVaisseau)
                 C_Vaisseau.vie = 0
                 space.text2.set("Lifes : "+str(C_Vaisseau.vie))
-                #for i in range(len(space.L_Alien)):
-                    #space.L_Alien[i].stop = 1
+                for i in range(len(space.L_Alien)):
+                    space.L_Alien[i].present = 1
 
 
             else:
                 self.can.coords(self.imgAlien,self.X,self.Y)
                 space.after(200,self.deplacementAlien)
+
 
     def laser(self):
         if self.stop == 0 and self.present == 0:
