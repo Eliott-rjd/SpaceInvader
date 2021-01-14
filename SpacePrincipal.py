@@ -6,7 +6,6 @@ Eliott RAJAUD et Axel GUILLET
 18/12/20
 TODO : Faire le menu
     Mettre role, entree sortie de toutes les fcts
-    Regler probleme du spam demarrer
     faire fichier a part avec les classes et autres avec la creation TkInter
     Modifier le progr a fct
     Erreur d'index lors du tir du laser du vaisseau à corriger (erreur sans conséquence sur le jeu du moins)
