@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+    
 Programme principale du SpaceInvader
 Eliott RAJAUD et Axel GUILLET
 18/12/20
-TODO : Faire le menu
+TODO : 
     Mettre role, entree sortie de toutes les fcts
+    Modif nom variable
     faire fichier a part avec les classes et autres avec la creation TkInter
     Modifier le progr a fct
     Erreur d'index lors du tir du laser du vaisseau à corriger (erreur sans conséquence sur le jeu du moins)
     les ilots se régénèrent mal avec la fonction rejouer
+
 """
 
 from tkinter import Tk,Label,Canvas,Button,StringVar,PhotoImage,messagebox
@@ -19,6 +22,9 @@ import random as rd
 
 class SpaceInvader(Tk):
     def __init__(self):
+        '''Role : Initialise la fenètre tkinter du Jeu
+        Sortie : la fonction n'as pas de sortie mais certain boutton appel d'autre fonction
+        '''
         Tk.__init__(self)
         self.geometry('900x700+200+50')
         self.title('Space Invaders')
@@ -53,264 +59,260 @@ class SpaceInvader(Tk):
         self.listAlien = []
         self.démarrer = 0
         self.score = 0
-        self.Liste_classe_init()
+        self.listeClasseInit()
         self.ilots()
 
     def ilots(self):
         self.protections = []
-        self.L= []
+        self.listeIlot= []
         for i in range(5):
             for j in range(3):
                 a = self.can.create_rectangle(50+i*16, 380+j*16, 50+i*16+16, 380+j*16+16, fill= "white")
                 b = self.can.create_rectangle(210+i*16, 380+j*16, 210+i*16+16, 380+j*16+16, fill= "white")
                 c = self.can.create_rectangle(370+i*16, 380+j*16, 370+i*16+16, 380+j*16+16, fill= "white")
                 self.protections.extend([a,b,c])
-                L_a = [50+i*16, 380+j*16, 50+i*16+16, 380+j*16+16]
-                L_b = [210+i*16, 380+j*16, 210+i*16+16, 380+j*16+16]
-                L_c = [370+i*16, 380+j*16, 370+i*16+16, 380+j*16+16]
-                self.L.extend([L_a,L_b,L_c])
+                ilot1 = [50+i*16, 380+j*16, 50+i*16+16, 380+j*16+16]
+                ilot2 = [210+i*16, 380+j*16, 210+i*16+16, 380+j*16+16]
+                ilot3 = [370+i*16, 380+j*16, 370+i*16+16, 380+j*16+16]
+                self.listeIlot.extend([ilot1,ilot2,ilot3])
 
-    def Liste_classe_init(self):
+    def listeClasseInit(self):
         self.listAlien = []
         for j in range(0,3):
-            L = []
-            for i in range(0,6):
-                C_Alien = Alien(self.can,i*60,j*60)
-                L.append(C_Alien)
-                self.listAlien.append(L)
+            for i in range(0,2):
+                cAlien = Alien(self.can,i*60,j*60)
+                self.listAlien.append(cAlien)
 
     def init_partie(self):
         if self.démarrer == 0:
-            for k in range(0,len(self.listAlien)):
-                for i in range(0,len(self.listAlien[k])):
-                    self.listAlien[k][i].deplacementAlien()
-                    self.listAlien[k][i].laser()
-            self.bind("<Left>",C_Vaisseau.déplacementVaisseau_left)
-            self.bind("<Right>",C_Vaisseau.déplacementVaisseau_right)
-            self.bind("<space>",C_Vaisseau.laser)
-            self.text2.set("Lifes : "+str(C_Vaisseau.vie))
+            for i in range(0,len(self.listAlien)):
+                self.listAlien[i].deplacementAlien()
+                self.listAlien[i].laser()
+            self.bind("<Left>",cVaisseau.deplacementVaisseauLeft)
+            self.bind("<Right>",cVaisseau.deplacementVaisseauRight)
+            self.bind("<space>",cVaisseau.laser)
+            self.text2.set("Lifes : "+str(cVaisseau.vie))
             self.text1.set("Score : "+str(self.score))
             self.démarrer = 1
-            C_Vaisseau.stop = 0
+            cVaisseau.stop = 0
 
     def rejouer(self):
         for k in range(len(self.listAlien)):
-            for i in range(len(self.listAlien[k])):
-                self.can.delete(self.listAlien[k][i].imgAlien)
-                self.listAlien[k][i].stop = 1
+            for i in range(len(self.listAlien)):
+                self.can.delete(self.listAlien[i].imgAlien)
+                self.listAlien[i].stop = 1
         self.ilots()
-        self.Liste_classe_init()
+        self.listeClasseInit()
         self.démarrer = 0
-        self.can.delete(C_Vaisseau.imgVaisseau)
-        C_Vaisseau.imgVaisseau = self.can.create_image(self.longueur/2, self.hauteur, anchor = 'sw', image = C_Vaisseau.vaisseau)
-        C_Vaisseau.Xv = self.longueur/2
-        C_Vaisseau.stop = 1
-        C_Vaisseau.vie = 3
-        self.text2.set("Lifes : "+str(C_Vaisseau.vie))
+        self.can.delete(cVaisseau.imgVaisseau)
+        cVaisseau.imgVaisseau = self.can.create_image(self.longueur/2, self.hauteur, anchor = 'sw', image = cVaisseau.vaisseau)
+        cVaisseau.Xv = self.longueur/2
+        cVaisseau.stop = 1
+        cVaisseau.vie = 3
+        self.text2.set("Lifes : "+str(cVaisseau.vie))
         self.score = 0
         self.text1.set("Score : "+str(self.score))
-
-
-
+        
+        
+  
 class Alien():
-    def __init__(self,canvas,X,Y):
+    def __init__(self,canvas,x,y):
         self.can = canvas
-        self.X  = X
-        self.Y  = Y
+        self.x  = x
+        self.y  = y
         self.dx = 7
         self.stop = 0
         self.present = 0
         self.toucher_droit = 0
         self.toucher_gauche = 0
-        self.attend = 0
-        #self.ind = 0
         self.alien = PhotoImage(file = 'alien.gif')
-        self.imgAlien = self.can.create_image(self.X, self.Y, anchor ='nw',image = self.alien)
-        self.Xl = self.X + self.alien.height()/2
-        self.Yl = self.Y + self.alien.width()
+        self.alienBonus = PhotoImage(file = 'alienBonus.gif')
+        
+        self.imgAlien = self.can.create_image(self.x, self.y, anchor ='nw',image = self.alien)
+        self.xl = self.x + self.alien.height()/2
+        self.yl = self.y + self.alien.width()
         self.dy = 10
         self.a = -1
         self.verif = 0
+
 
     def deplacementAlien(self):
 
         if self.stop == 0:
             self.toucher_droit = 0
-            for k in range(0,len(space.listAlien)):
-                if (space.listAlien[k])[len(space.listAlien[k])-1].X+(space.listAlien[k])[len(space.listAlien[k])-1].dx+(space.listAlien[k])[len(space.listAlien[k])-1].alien.width() > space.longueur:
-                    for i in range(len(space.listAlien[k])):
-                        space.listAlien[k][i].toucher_droit = 1
-                    #if self.ind != len(space.listAlien[k])-1:
-                        #for i in range(len(space.listAlien[k])):
-                            #space.listAlien[k][i].ind += 1
-                    #else:
-                        #for i in range(len(space.listAlien[k])):
-                            #space.listAlien[k][i].ind = 0
+            if (space.listAlien)[len(space.listAlien)-1].x+(space.listAlien)[len(space.listAlien)-1].dx+(space.listAlien)[len(space.listAlien)-1].alien.width() > space.longueur:
+                for i in range(len(space.listAlien)):
+                    space.listAlien[i].toucher_droit = 1
+               
 
             if self.verif % 2 == 0:
-                for k in range(len(space.listAlien)):
-                    if space.listAlien[k][0].X+space.listAlien[k][0].dx< 0:
-                        for i in range(len(space.listAlien[k])):
-                            space.listAlien[k][i].toucher_gauche = 1
-                            space.listAlien[k][i].verif = 1
+                if space.listAlien[0].x+space.listAlien[0].dx< 0:
+                    for i in range(len(space.listAlien)):
+                        space.listAlien[i].toucher_gauche = 1
+                        space.listAlien[i].verif = 1
 
             if self.toucher_droit == 1:
                 self.dx = -self.dx
                 self.toucher_droit = 0
 
+
             if self.toucher_gauche == 1:
-                print('ddd')
                 self.dx = -self.dx
-                self.Y += self.alien.height()
+                self.y += self.alien.height()
                 self.toucher_gauche = 0
-            self.X += self.dx
+            self.x += self.dx
 
-            if self.Y >= space.hauteur/2:
-                self.can.coords(self.imgAlien,self.X,self.Y)
-                self.can.delete(C_Vaisseau.imgVaisseau)
-                C_Vaisseau.vie = 0
-                space.text2.set("Lifes : "+str(C_Vaisseau.vie))
-                for k in range(len(space.listAlien)):
-                    for i in range(len(space.listAlien[k])):
-                        space.listAlien[k][i].present = 1
-
+            if self.y >= space.hauteur/2:
+                self.can.coords(self.imgAlien,self.x,self.y)
+                self.can.delete(cVaisseau.imgVaisseau)
+                cVaisseau.vie = 0
+                space.text2.set("Lifes : "+str(cVaisseau.vie))
+                for i in range(len(space.listAlien)):
+                    space.listAlien[i].present = 1
+                    space.listAlien[i].stop = 1
+                messagebox.showinfo('GameOver','Vous avez perdu')
+                
             else:
-                self.can.coords(self.imgAlien,self.X,self.Y)
-                space.after(1000,self.deplacementAlien)
-                self.chgtVerif()
+                self.can.coords(self.imgAlien,self.x,self.y)
+                space.after(100,self.deplacementAlien)
+                self.verif += 1
 
-    def chgtVerif(self):
-        self.verif += 1
 
     def laser(self):
         if self.stop == 0 and self.present == 0:
-            rnd = rd.random()*50
+            rnd = rd.random()*20
             if rnd <= 1:
-                self.Yl = self.Y + self.alien.width()
-                self.Xl = self.X + self.alien.height()/2
-                self.tir = self.can.create_rectangle(self.Xl-2, self.Yl, self.Xl+2, self.Yl + 30,fill='red')
+                self.yl = self.y + self.alien.width()
+                self.xl = self.x + self.alien.height()/2
+                self.tir = self.can.create_rectangle(self.xl-2, self.yl, self.xl+2, self.yl + 30,fill='red')
                 self.present = 1
                 self.deplacementLaser()
                 space.after(800,self.laser)
             else:
                 space.after(800,self.laser)
 
+
     def deplacementLaser(self):
         self.a = -1
-        if self.Yl >= space.hauteur:
+        if self.yl >= space.hauteur:
             self.present = 0
             self.can.delete(self.tir)
             space.after(800,self.laser)
 
         else:
-            self.Yl += self.dy
-            self.can.coords(self.tir, self.Xl-2, self.Yl, self.Xl+2, self.Yl + 30)
+            self.yl += self.dy
+            self.can.coords(self.tir, self.xl-2, self.yl, self.xl+2, self.yl + 30)
             space.after(20, self.deplacementLaser)
 
         if self.present == 1:
-            if (C_Vaisseau.Xv <= self.can.coords(self.tir)[0] <= C_Vaisseau.Xv + C_Vaisseau.vaisseau.width()) and (C_Vaisseau.Yv - C_Vaisseau.vaisseau.height()<= self.can.coords(self.tir)[3] <= C_Vaisseau.Yv):
+            if (cVaisseau.xv <= self.can.coords(self.tir)[0] <= cVaisseau.xv + cVaisseau.vaisseau.width()) and (cVaisseau.yv - cVaisseau.vaisseau.height()<= self.can.coords(self.tir)[3] <= cVaisseau.yv):
                 self.present = 0
                 self.can.delete(self.tir)
-                C_Vaisseau.vie -= 1
-                space.text2.set("Lifes : "+str(C_Vaisseau.vie))
-                if C_Vaisseau.vie == 0:
-                    self.can.delete(C_Vaisseau.imgVaisseau)
-                    for k in range(len(space.listAlien)):
-                        for i in range(len(space.listAlien[k])):
-                            space.listAlien[k][i].stop = 1
+                cVaisseau.vie -= 1
+                space.text2.set("Lifes : "+str(cVaisseau.vie))
 
-        for i in range(len(space.L)):
+                if cVaisseau.vie == 0:
+                    self.can.delete(cVaisseau.imgVaisseau)
+                    for i in range(len(space.listAlien)):
+                        space.listAlien[i].stop = 1
+                    messagebox.showinfo('GameOver','Vous avez perdu')
+
+        for i in range(len(space.listeIlot)):
             if self.present == 1:
-                if (space.L[i])[0] <= self.can.coords(self.tir)[0] <= (space.L[i])[2] and (space.L[i])[1] <= self.can.coords(self.tir)[3] <= (space.L[i])[3]:
-                    self.can.delete(space.L[i])
+                if (space.listeIlot[i])[0] <= self.can.coords(self.tir)[0] <= (space.listeIlot[i])[2] and (space.listeIlot[i])[1] <= self.can.coords(self.tir)[3] <= (space.listeIlot[i])[3]:
+                    self.can.delete(space.listeIlot[i])
                     self.can.delete(space.protections[i])
                     self.present = 0
                     self.can.delete(self.tir)
                     self.a = i
 
         if self.a != -1:
-            space.L.pop(self.a)
+            space.listeIlot.pop(self.a)
             space.protections.pop(self.a)
 
 
 class Vaisseau():
     def __init__(self):
         self.can = space.can
-        self.Xv = space.longueur/2
-        self.Yv = space.hauteur
+        self.xv = space.longueur/2
+        self.yv = space.hauteur
         self.vaisseau = PhotoImage(file = 'vaisseau.gif')
-        self.imgVaisseau = self.can.create_image(self.Xv, self.Yv, anchor = 'sw', image = self.vaisseau)
-        self.Xl = self.Xv
-        self.Yl = self.Yv
+        self.imgVaisseau = self.can.create_image(self.xv, self.yv, anchor = 'sw', image = self.vaisseau)
+        self.xl = self.xv
+        self.yl = self.yv
         self.dy = 10
         self.present = 0
         self.vie = 3
         self.a = -1
         self.stop = 0
 
-    def déplacementVaisseau_left(self,event):
-        if self.stop == 0:
-            if self.vie > 0:
-                if self.Xv > 0:
-                    self.Xv -= 20
-                self.can.coords(self.imgVaisseau, self.Xv, self.Yv)
 
-    def déplacementVaisseau_right(self,event):
+    def deplacementVaisseauLeft(self,event):
         if self.stop == 0:
             if self.vie > 0:
-                if self.Xv + self.vaisseau.width() < space.longueur:
-                    self.Xv += 20
-                self.can.coords(self.imgVaisseau, self.Xv, self.Yv)
+                if self.xv > 0:
+                    self.xv -= 20
+                self.can.coords(self.imgVaisseau, self.xv, self.yv)
+
+    def deplacementVaisseauRight(self,event):
+        if self.stop == 0:
+            if self.vie > 0:
+                if self.xv + self.vaisseau.width() < space.longueur:
+                    self.xv += 20
+                self.can.coords(self.imgVaisseau, self.xv, self.yv)
 
     def laser(self,event):
         if self.present == 0 and self.vie > 0 and self.stop == 0:
-            self.Xl = self.Xv
-            self.Yl = self.Yv
-            self.tir = self.can.create_rectangle(self.Xl+self.vaisseau.width()/2-2, self.Yl-self.vaisseau.height()-30, self.Xl+self.vaisseau.width()/2+2, self.Yl-self.vaisseau.height(),fill='blue')
+            self.xl = self.xv
+            self.yl = self.yv
+            self.tir = self.can.create_rectangle(self.xl+self.vaisseau.width()/2-2, self.yl-self.vaisseau.height()-30, self.xl+self.vaisseau.width()/2+2, self.yl-self.vaisseau.height(),fill='blue')
             self.present = 1
             self.deplacementLaser()
 
 
     def deplacementLaser(self):
         self.a = -1
-        if self.Yl <= 0:
+        if self.yl <= 0:
             self.can.delete(self.tir)
             self.present = 0
 
+
         else:
-            self.Yl -= self.dy
-            self.can.coords(self.tir, self.Xl+self.vaisseau.width()/2-2, self.Yl-self.vaisseau.height()-30, self.Xl+self.vaisseau.width()/2+2, self.Yl-self.vaisseau.height())
+            self.yl -= self.dy
+            self.can.coords(self.tir, self.xl+self.vaisseau.width()/2-2, self.yl-self.vaisseau.height()-30, self.xl+self.vaisseau.width()/2+2, self.yl-self.vaisseau.height())
             space.after(20, self.deplacementLaser)
 
-        for i in range(len(space.L)):
+
+        for i in range(len(space.listeIlot)):
             if self.present == 1:
-                if (space.L[i])[0] <= self.can.coords(self.tir)[0] <= (space.L[i])[2] and (space.L[i])[1] <= self.can.coords(self.tir)[1] <= (space.L[i])[3]:
-                    self.can.delete(space.L[i])
+                if (space.listeIlot[i])[0] <= self.can.coords(self.tir)[0] <= (space.listeIlot[i])[2] and (space.listeIlot[i])[1] <= self.can.coords(self.tir)[1] <= (space.listeIlot[i])[3]:
+                    self.can.delete(space.listeIlot[i])
                     self.can.delete(space.protections[i])
                     self.can.delete(self.tir)
                     self.present = 0
                     self.a = i
 
         if self.a != -1:
-            space.L.pop(self.a)
+            space.listeIlot.pop(self.a)
             space.protections.pop(self.a)
 
-        for k in range(len(space.listAlien)):
-            for i in range(len(space.listAlien[k])):
-                if self.present == 1:
-                    if (space.listAlien[k][i].X <= self.can.coords(self.tir)[0] <= space.listAlien[k][i].X + space.listAlien[k][i].alien.width()) and (space.listAlien[k][i].Y <= self.can.coords(self.tir)[1] <= space.listAlien[k][i].Y + space.listAlien[k][i].alien.height()):
-                        self.can.delete(self.tir)
-                        self.can.delete(space.listAlien[k][i].imgAlien)
-                        space.listAlien[k][i].stop = 1
-                        space.listAlien[k].pop(i)
-                        self.present = 0
-                        space.score += 100
-                        space.text1.set("Score : "+str(space.score))
+        for i in range(len(space.listAlien)):
+            if self.present == 1:
+                if (space.listAlien[i].x <= self.can.coords(self.tir)[0] <= space.listAlien[i].x + space.listAlien[i].alien.width()) and (space.listAlien[i].y <= self.can.coords(self.tir)[1] <= space.listAlien[i].y + space.listAlien[i].alien.height()):
+                    self.can.delete(self.tir)
+                    self.can.delete(space.listAlien[i].imgAlien)
+                    space.listAlien[i].stop = 1
+                    space.listAlien.pop(i)
+                    self.present = 0
+                    space.score += 100
+                    space.text1.set("Score : "+str(space.score))
+                    if space.listAlien == []:
+                        messagebox.showinfo('Gagné','Vous avez gagné, félicitations')
+                        cVaisseau.stop = 1
 
-
-#def rejouer():
 
 space = SpaceInvader()
-C_Vaisseau = Vaisseau()
+cVaisseau = Vaisseau()
+
 
 space.mainloop()
