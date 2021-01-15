@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-    
+
 Programme principale du SpaceInvader
 Eliott RAJAUD et Axel GUILLET
 18/12/20
-TODO : 
+TODO :
     Mettre role, entree sortie de toutes les fcts
     Modif nom variable
     faire fichier a part avec les classes et autres avec la creation TkInter
@@ -57,8 +57,11 @@ class SpaceInvader(Tk):
         self.buttonQuit.grid(row = 3, column = 3, rowspan = 1, sticky = "e")
         self.can.grid(row = 2 , column = 1, rowspan = 2, columnspan = 2,  sticky = "w")
         self.listAlien = []
+        self.listAlienBonus = []
         self.démarrer = 0
         self.score = 0
+        self.end_game = 0
+        self.AlienBonus_present = 0
         self.listeClasseInit()
         self.ilots()
 
@@ -91,6 +94,7 @@ class SpaceInvader(Tk):
             self.bind("<Left>",cVaisseau.deplacementVaisseauLeft)
             self.bind("<Right>",cVaisseau.deplacementVaisseauRight)
             self.bind("<space>",cVaisseau.laser)
+            self.Create_Alien_Bonus()
             self.text2.set("Lifes : "+str(cVaisseau.vie))
             self.text1.set("Score : "+str(self.score))
             self.démarrer = 1
@@ -101,20 +105,45 @@ class SpaceInvader(Tk):
             for i in range(len(self.listAlien)):
                 self.can.delete(self.listAlien[i].imgAlien)
                 self.listAlien[i].stop = 1
+        for j in range(len(space.listeIlot)):
+            self.can.delete(space.listeIlot[j])
+            self.can.delete(space.protections[j])
         self.ilots()
         self.listeClasseInit()
         self.démarrer = 0
         self.can.delete(cVaisseau.imgVaisseau)
         cVaisseau.imgVaisseau = self.can.create_image(self.longueur/2, self.hauteur, anchor = 'sw', image = cVaisseau.vaisseau)
-        cVaisseau.Xv = self.longueur/2
+        cVaisseau.xv = self.longueur/2
         cVaisseau.stop = 1
         cVaisseau.vie = 3
         self.text2.set("Lifes : "+str(cVaisseau.vie))
         self.score = 0
         self.text1.set("Score : "+str(self.score))
-        
-        
-  
+        if len(self.listAlienBonus) == 1:
+            self.can.delete(self.listAlienBonus[0].imgAlienBonus)
+            self.listAlienBonus[0].stop = 1
+        self.AlienBonus_present = 0
+        self.end_game = 0
+
+
+    def Create_Alien_Bonus(self):
+        if self.end_game == 0:
+            notAliensup = 0
+            for i in range (len(self.listAlien)):
+                if self.listAlien[i].y == 0:
+                    notAliensup = 1
+            if notAliensup == 0 and self.AlienBonus_present == 0:
+                rnd = rd.random()*40
+                if rnd <= 1:
+                    cAlienBonus = AlienBonus(self.can)
+                    if len(self.listAlienBonus) == 1:
+                        self.listAlienBonus.pop(0)
+                    self.listAlienBonus.append(cAlienBonus)
+                    self.AlienBonus_present = 1
+                    cAlienBonus.deplacementAlienBonus()
+            space.after(200,self.Create_Alien_Bonus)
+
+
 class Alien():
     def __init__(self,canvas,x,y):
         self.can = canvas
@@ -126,24 +155,23 @@ class Alien():
         self.toucher_droit = 0
         self.toucher_gauche = 0
         self.alien = PhotoImage(file = 'alien.gif')
-        self.alienBonus = PhotoImage(file = 'alienBonus.gif')
-        
+
         self.imgAlien = self.can.create_image(self.x, self.y, anchor ='nw',image = self.alien)
         self.xl = self.x + self.alien.height()/2
         self.yl = self.y + self.alien.width()
         self.dy = 10
         self.a = -1
         self.verif = 0
+        self.score_alien = 100
 
 
     def deplacementAlien(self):
-
         if self.stop == 0:
             self.toucher_droit = 0
             if (space.listAlien)[len(space.listAlien)-1].x+(space.listAlien)[len(space.listAlien)-1].dx+(space.listAlien)[len(space.listAlien)-1].alien.width() > space.longueur:
                 for i in range(len(space.listAlien)):
                     space.listAlien[i].toucher_droit = 1
-               
+
 
             if self.verif % 2 == 0:
                 if space.listAlien[0].x+space.listAlien[0].dx< 0:
@@ -170,17 +198,20 @@ class Alien():
                 for i in range(len(space.listAlien)):
                     space.listAlien[i].present = 1
                     space.listAlien[i].stop = 1
+                    if space.AlienBonus_present == 1:
+                        space.listAlienBonus[0].stop = 1
+                space.end_game = 1
                 messagebox.showinfo('GameOver','Vous avez perdu')
-                
+
             else:
                 self.can.coords(self.imgAlien,self.x,self.y)
-                space.after(100,self.deplacementAlien)
+                space.after(200,self.deplacementAlien)
                 self.verif += 1
 
 
     def laser(self):
         if self.stop == 0 and self.present == 0:
-            rnd = rd.random()*20
+            rnd = rd.random()*10
             if rnd <= 1:
                 self.yl = self.y + self.alien.width()
                 self.xl = self.x + self.alien.height()/2
@@ -215,6 +246,9 @@ class Alien():
                     self.can.delete(cVaisseau.imgVaisseau)
                     for i in range(len(space.listAlien)):
                         space.listAlien[i].stop = 1
+                        if space.AlienBonus_present == 1:
+                            space.listAlienBonus[0].stop = 1
+                    space.end_game = 1
                     messagebox.showinfo('GameOver','Vous avez perdu')
 
         for i in range(len(space.listeIlot)):
@@ -229,6 +263,29 @@ class Alien():
         if self.a != -1:
             space.listeIlot.pop(self.a)
             space.protections.pop(self.a)
+
+
+class AlienBonus():
+    def __init__(self,canvas):
+        self.can = canvas
+        self.xb  = 500
+        self.yb  = 0
+        self.dx = 7
+        self.alienBonus = PhotoImage(file = 'alienBonus.gif')
+        self.imgAlienBonus = self.can.create_image(self.xb, self.yb, anchor ='nw',image = self.alienBonus)
+        self.stop = 0
+        self.score_alien_bonus = 200
+
+    def deplacementAlienBonus(self):
+        if self.stop == 0:
+            self.xb -= self.dx
+            self.can.coords(self.imgAlienBonus,self.xb,self.yb)
+            if self.xb + self.alienBonus.width() <= 0:
+                self.can.delete(self.imgAlienBonus)
+                self.stop = 1
+                space.AlienBonus_present = 0
+            space.after(100,self.deplacementAlienBonus)
+
 
 
 class Vaisseau():
@@ -271,16 +328,17 @@ class Vaisseau():
 
 
     def deplacementLaser(self):
+
         self.a = -1
         if self.yl <= 0:
             self.can.delete(self.tir)
             self.present = 0
 
-
         else:
             self.yl -= self.dy
             self.can.coords(self.tir, self.xl+self.vaisseau.width()/2-2, self.yl-self.vaisseau.height()-30, self.xl+self.vaisseau.width()/2+2, self.yl-self.vaisseau.height())
             space.after(20, self.deplacementLaser)
+
 
 
         for i in range(len(space.listeIlot)):
@@ -300,15 +358,30 @@ class Vaisseau():
             if self.present == 1:
                 if (space.listAlien[i].x <= self.can.coords(self.tir)[0] <= space.listAlien[i].x + space.listAlien[i].alien.width()) and (space.listAlien[i].y <= self.can.coords(self.tir)[1] <= space.listAlien[i].y + space.listAlien[i].alien.height()):
                     self.can.delete(self.tir)
+                    self.present = 0
                     self.can.delete(space.listAlien[i].imgAlien)
                     space.listAlien[i].stop = 1
+                    space.score += space.listAlien[i].score_alien
                     space.listAlien.pop(i)
-                    self.present = 0
-                    space.score += 100
                     space.text1.set("Score : "+str(space.score))
                     if space.listAlien == []:
-                        messagebox.showinfo('Gagné','Vous avez gagné, félicitations')
                         cVaisseau.stop = 1
+                        if space.AlienBonus_present == 1:
+                            space.listAlienBonus[0].stop = 1
+                        space.end_game = 1
+                        messagebox.showinfo('Gagné','Vous avez gagné, félicitations')
+
+        if space.AlienBonus_present == 1:
+            if self.present == 1:
+                if (space.listAlienBonus[0].xb <= self.can.coords(self.tir)[0] <= space.listAlienBonus[0].xb + space.listAlienBonus[0].alienBonus.width()) and (space.listAlienBonus[0].yb <= self.can.coords(self.tir)[1] <= space.listAlienBonus[0].yb + space.listAlienBonus[0].alienBonus.height()):
+                    self.can.delete(space.listAlienBonus[0].imgAlienBonus)
+                    self.can.delete(self.tir)
+                    self.present = 0
+                    space.listAlienBonus[0].stop = 1
+                    space.AlienBonus_present = 0
+                    space.score += space.listAlienBonus[0].score_alien_bonus
+                    space.text1.set("Score : "+str(space.score))
+
 
 
 space = SpaceInvader()
