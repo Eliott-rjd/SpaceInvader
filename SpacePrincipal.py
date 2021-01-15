@@ -9,6 +9,7 @@ TODO : Faire le menu
     faire fichier a part avec les classes et autres avec la creation TkInter
     Modifier le progr a fct
     Erreur d'index lors du tir du laser du vaisseau à corriger (erreur sans conséquence sur le jeu du moins)
+    les ilots se régénèrent mal avec la fonction rejouer
 """
 
 from tkinter import Tk,Label,Canvas,Button,StringVar,PhotoImage,messagebox
@@ -16,7 +17,7 @@ import random as rd
 #from ClassVaisseau import Vaisseau
 #from ClassAlien import Alien
 
-class space_invader(Tk):
+class SpaceInvader(Tk):
     def __init__(self):
         Tk.__init__(self)
         self.geometry('900x700+200+50')
@@ -33,28 +34,31 @@ class space_invader(Tk):
 
         self.item = self.can.create_image(0, 0, anchor = 'nw', image = self.photo)
 
-        #self.text1 = StringVar()
-        self.labelScore = Label(self, text = 'Score = self.text1') #textvariable pour score qui change en fonction du stringvar
+        self.text1 = StringVar()
+        self.labelScore = Label(self, textvariable = self.text1) #textvariable pour score qui change en fonction du stringvar
         self.text2 = StringVar()
         self.labelVie = Label(self, textvariable = self.text2)
 
         self.buttonQuit = Button(self , text = 'Quitter' , fg = 'red' , command = self.destroy)
-        #self.buttonReplay = Button(self, text = 'Rejouer' , command = self.rejouer )
+        self.buttonReplay = Button(self, text = 'Rejouer' , command = self.rejouer)
 
         self.newGame = Button(self, text = 'Démarrer une partie', command = self.init_partie)
 
         self.labelScore.grid(row = 1, column = 1, sticky = 'w')
         self.labelVie.grid(row = 1, column = 2, sticky = 'e')
         self.newGame.grid(row = 2, column = 3, rowspan = 1, sticky = 'e')
-        #self.buttonReplay.grid(row = 2, column = 4, rowspan = 1, sticky = "e")
+        self.buttonReplay.grid(row = 2, column = 4, rowspan = 1, sticky = "e")
         self.buttonQuit.grid(row = 3, column = 3, rowspan = 1, sticky = "e")
         self.can.grid(row = 2 , column = 1, rowspan = 2, columnspan = 2,  sticky = "w")
-        self.L_Alien = []
+        self.listAlien = []
         self.démarrer = 0
+        self.score = 0
         self.Liste_classe_init()
         self.ilots()
 
     def ilots(self):
+        self.protections = []
+        self.L= []
         for i in range(5):
             for j in range(3):
                 a = self.can.create_rectangle(50+i*16, 380+j*16, 50+i*16+16, 380+j*16+16, fill= "white")
@@ -67,73 +71,95 @@ class space_invader(Tk):
                 self.L.extend([L_a,L_b,L_c])
 
     def Liste_classe_init(self):
+        self.listAlien = []
         for j in range(0,3):
             L = []
             for i in range(0,6):
                 C_Alien = Alien(self.can,i*60,j*60)
                 L.append(C_Alien)
-                self.L_Alien.append(L)
-        print(L)
-
+                self.listAlien.append(L)
 
     def init_partie(self):
         if self.démarrer == 0:
-            for k in range(0,len(self.L_Alien)):
-                for i in range(0,len(self.L_Alien[k])):
-                    self.L_Alien[k][i].deplacementAlien()
-                    self.L_Alien[k][i].laser()
+            for k in range(0,len(self.listAlien)):
+                for i in range(0,len(self.listAlien[k])):
+                    self.listAlien[k][i].deplacementAlien()
+                    self.listAlien[k][i].laser()
             self.bind("<Left>",C_Vaisseau.déplacementVaisseau_left)
             self.bind("<Right>",C_Vaisseau.déplacementVaisseau_right)
             self.bind("<space>",C_Vaisseau.laser)
             self.text2.set("Lifes : "+str(C_Vaisseau.vie))
+            self.text1.set("Score : "+str(self.score))
             self.démarrer = 1
+            C_Vaisseau.stop = 0
+
+    def rejouer(self):
+        for k in range(len(self.listAlien)):
+            for i in range(len(self.listAlien[k])):
+                self.can.delete(self.listAlien[k][i].imgAlien)
+                self.listAlien[k][i].stop = 1
+        self.ilots()
+        self.Liste_classe_init()
+        self.démarrer = 0
+        self.can.delete(C_Vaisseau.imgVaisseau)
+        C_Vaisseau.imgVaisseau = self.can.create_image(self.longueur/2, self.hauteur, anchor = 'sw', image = C_Vaisseau.vaisseau)
+        C_Vaisseau.Xv = self.longueur/2
+        C_Vaisseau.stop = 1
+        C_Vaisseau.vie = 3
+        self.text2.set("Lifes : "+str(C_Vaisseau.vie))
+        self.score = 0
+        self.text1.set("Score : "+str(self.score))
+
+
 
 class Alien():
     def __init__(self,canvas,X,Y):
         self.can = canvas
         self.X  = X
         self.Y  = Y
-        self.dx = 10
+        self.dx = 7
         self.stop = 0
         self.present = 0
         self.toucher_droit = 0
         self.toucher_gauche = 0
         self.attend = 0
-        self.ind = 0
+        #self.ind = 0
         self.alien = PhotoImage(file = 'alien.gif')
         self.imgAlien = self.can.create_image(self.X, self.Y, anchor ='nw',image = self.alien)
         self.Xl = self.X + self.alien.height()/2
         self.Yl = self.Y + self.alien.width()
         self.dy = 10
         self.a = -1
+        self.verif = 0
 
     def deplacementAlien(self):
-        if self.stop == 0:
-            #self.toucher_droit = 0
-            for k in range(0,len(space.L_Alien)):
-                if (space.L_Alien[k])[len(space.L_Alien[k])-1].X+(space.L_Alien[k])[len(space.L_Alien[k])-1].dx+(space.L_Alien[k])[len(space.L_Alien[k])-1].alien.width() > space.longueur:
-                    if space.L_Alien[0][0].toucher_droit == 0:
-                        for k in range(0,len(space.L_Alien)):
-                            for i in range(self.ind,len(space.L_Alien[k])):
-                                space.L_Alien[k][i].toucher_droit = 1
-                        if self.ind != len(space.L_Alien[k])-1:
-                            for i in range(len(space.L_Alien[k])):
-                                space.L_Alien[k][i].ind += 1
-                        else:
-                            for i in range(len(space.L_Alien[k])):
-                                space.L_Alien[k][i].ind = 0
 
-            if self.X + self.dx< 0:
-                if space.L_Alien[0][0].toucher_gauche == 0:
-                    for k in range(0,len(space.L_Alien)):
-                        for i in range(len(space.L_Alien[k])):
-                            space.L_Alien[k][i].toucher_gauche = 1
+        if self.stop == 0:
+            self.toucher_droit = 0
+            for k in range(0,len(space.listAlien)):
+                if (space.listAlien[k])[len(space.listAlien[k])-1].X+(space.listAlien[k])[len(space.listAlien[k])-1].dx+(space.listAlien[k])[len(space.listAlien[k])-1].alien.width() > space.longueur:
+                    for i in range(len(space.listAlien[k])):
+                        space.listAlien[k][i].toucher_droit = 1
+                    #if self.ind != len(space.listAlien[k])-1:
+                        #for i in range(len(space.listAlien[k])):
+                            #space.listAlien[k][i].ind += 1
+                    #else:
+                        #for i in range(len(space.listAlien[k])):
+                            #space.listAlien[k][i].ind = 0
+
+            if self.verif % 2 == 0:
+                for k in range(len(space.listAlien)):
+                    if space.listAlien[k][0].X+space.listAlien[k][0].dx< 0:
+                        for i in range(len(space.listAlien[k])):
+                            space.listAlien[k][i].toucher_gauche = 1
+                            space.listAlien[k][i].verif = 1
 
             if self.toucher_droit == 1:
                 self.dx = -self.dx
                 self.toucher_droit = 0
 
             if self.toucher_gauche == 1:
+                print('ddd')
                 self.dx = -self.dx
                 self.Y += self.alien.height()
                 self.toucher_gauche = 0
@@ -144,19 +170,21 @@ class Alien():
                 self.can.delete(C_Vaisseau.imgVaisseau)
                 C_Vaisseau.vie = 0
                 space.text2.set("Lifes : "+str(C_Vaisseau.vie))
-                for k in range(0,len(space.L_Alien)):
-                    for i in range(len(space.L_Alien[k])):
-                        space.L_Alien[k][i].present = 1
-
+                for k in range(len(space.listAlien)):
+                    for i in range(len(space.listAlien[k])):
+                        space.listAlien[k][i].present = 1
 
             else:
                 self.can.coords(self.imgAlien,self.X,self.Y)
-                space.after(800,self.deplacementAlien)
+                space.after(1000,self.deplacementAlien)
+                self.chgtVerif()
 
+    def chgtVerif(self):
+        self.verif += 1
 
     def laser(self):
         if self.stop == 0 and self.present == 0:
-            rnd = rd.random()*10
+            rnd = rd.random()*50
             if rnd <= 1:
                 self.Yl = self.Y + self.alien.width()
                 self.Xl = self.X + self.alien.height()/2
@@ -187,9 +215,9 @@ class Alien():
                 space.text2.set("Lifes : "+str(C_Vaisseau.vie))
                 if C_Vaisseau.vie == 0:
                     self.can.delete(C_Vaisseau.imgVaisseau)
-                    for k in range(0,len(space.L_Alien)):
-                        for i in range(len(space.L_Alien[k])):
-                            space.L_Alien[k][i].stop = 1
+                    for k in range(len(space.listAlien)):
+                        for i in range(len(space.listAlien[k])):
+                            space.listAlien[k][i].stop = 1
 
         for i in range(len(space.L)):
             if self.present == 1:
@@ -218,21 +246,24 @@ class Vaisseau():
         self.present = 0
         self.vie = 3
         self.a = -1
+        self.stop = 0
 
     def déplacementVaisseau_left(self,event):
-        if self.vie > 0:
-            if self.Xv > 0:
-                self.Xv -= 20
-            self.can.coords(self.imgVaisseau, self.Xv, self.Yv)
+        if self.stop == 0:
+            if self.vie > 0:
+                if self.Xv > 0:
+                    self.Xv -= 20
+                self.can.coords(self.imgVaisseau, self.Xv, self.Yv)
 
     def déplacementVaisseau_right(self,event):
-        if self.vie > 0:
-            if self.Xv + self.vaisseau.width() < space.longueur:
-                self.Xv += 20
-            self.can.coords(self.imgVaisseau, self.Xv, self.Yv)
+        if self.stop == 0:
+            if self.vie > 0:
+                if self.Xv + self.vaisseau.width() < space.longueur:
+                    self.Xv += 20
+                self.can.coords(self.imgVaisseau, self.Xv, self.Yv)
 
     def laser(self,event):
-        if self.present == 0 and self.vie > 0:
+        if self.present == 0 and self.vie > 0 and self.stop == 0:
             self.Xl = self.Xv
             self.Yl = self.Yv
             self.tir = self.can.create_rectangle(self.Xl+self.vaisseau.width()/2-2, self.Yl-self.vaisseau.height()-30, self.Xl+self.vaisseau.width()/2+2, self.Yl-self.vaisseau.height(),fill='blue')
@@ -264,22 +295,22 @@ class Vaisseau():
             space.L.pop(self.a)
             space.protections.pop(self.a)
 
-        for k in range(len(space.L_Alien)):
-            for i in range(len(space.L_Alien[k])):
+        for k in range(len(space.listAlien)):
+            for i in range(len(space.listAlien[k])):
                 if self.present == 1:
-                    if (space.L_Alien[k][i].X <= self.can.coords(self.tir)[0] <= space.L_Alien[k][i].X + space.L_Alien[k][i].alien.width()) and (space.L_Alien[k][i].Y <= self.can.coords(self.tir)[1] <= space.L_Alien[k][i].Y + space.L_Alien[k][i].alien.height()):
+                    if (space.listAlien[k][i].X <= self.can.coords(self.tir)[0] <= space.listAlien[k][i].X + space.listAlien[k][i].alien.width()) and (space.listAlien[k][i].Y <= self.can.coords(self.tir)[1] <= space.listAlien[k][i].Y + space.listAlien[k][i].alien.height()):
                         self.can.delete(self.tir)
-                        self.can.delete(space.L_Alien[k][i].imgAlien)
-                        space.L_Alien[k][i].stop = 1
-                        space.L_Alien[k].pop(i)
+                        self.can.delete(space.listAlien[k][i].imgAlien)
+                        space.listAlien[k][i].stop = 1
+                        space.listAlien[k].pop(i)
                         self.present = 0
+                        space.score += 100
+                        space.text1.set("Score : "+str(space.score))
 
 
 #def rejouer():
 
-space = space_invader()
+space = SpaceInvader()
 C_Vaisseau = Vaisseau()
 
 space.mainloop()
-
-#rejouer()
