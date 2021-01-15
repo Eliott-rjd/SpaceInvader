@@ -50,7 +50,6 @@ class space_invader(Tk):
         self.buttonQuit.grid(row = 3, column = 3, rowspan = 1, sticky = "e")
         self.can.grid(row = 2 , column = 1, rowspan = 2, columnspan = 2,  sticky = "w")
         self.L_Alien = []
-        self.L_Vaisseau = []
         self.démarrer = 0
         self.Liste_classe_init()
         self.ilots()
