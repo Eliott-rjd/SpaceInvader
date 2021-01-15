@@ -75,7 +75,7 @@ class space_invader(Tk):
                 L.append(C_Alien)
                 self.L_Alien.append(L)
         print(L)
-            
+
 
     def init_partie(self):
         if self.démarrer == 0:
@@ -110,22 +110,25 @@ class Alien():
 
     def deplacementAlien(self):
         if self.stop == 0:
-            self.toucher_droit = 0
+            #self.toucher_droit = 0
             for k in range(0,len(space.L_Alien)):
                 if (space.L_Alien[k])[len(space.L_Alien[k])-1].X+(space.L_Alien[k])[len(space.L_Alien[k])-1].dx+(space.L_Alien[k])[len(space.L_Alien[k])-1].alien.width() > space.longueur:
-                    for i in range(self.ind,len(space.L_Alien[k])):
-                        if self.toucher_droit == 0:
-                            space.L_Alien[k][i].toucher_droit = 1
-                    if self.ind != len(space.L_Alien[k])-1:
-                        for i in range(len(space.L_Alien[k])):
-                            space.L_Alien[k][i].ind += 1
-                    else:
-                        for i in range(len(space.L_Alien[k])):
-                            space.L_Alien[k][i].ind = 0
+                    if space.L_Alien[0][0].toucher_droit == 0:
+                        for k in range(0,len(space.L_Alien)):
+                            for i in range(self.ind,len(space.L_Alien[k])):
+                                space.L_Alien[k][i].toucher_droit = 1
+                        if self.ind != len(space.L_Alien[k])-1:
+                            for i in range(len(space.L_Alien[k])):
+                                space.L_Alien[k][i].ind += 1
+                        else:
+                            for i in range(len(space.L_Alien[k])):
+                                space.L_Alien[k][i].ind = 0
 
             if self.X + self.dx< 0:
-                for i in range(len(space.L_Alien)):
-                    space.L_Alien[i].toucher_gauche = 1
+                if space.L_Alien[0][0].toucher_gauche == 0:
+                    for k in range(0,len(space.L_Alien)):
+                        for i in range(len(space.L_Alien[k])):
+                            space.L_Alien[k][i].toucher_gauche = 1
 
             if self.toucher_droit == 1:
                 self.dx = -self.dx
@@ -142,13 +145,14 @@ class Alien():
                 self.can.delete(C_Vaisseau.imgVaisseau)
                 C_Vaisseau.vie = 0
                 space.text2.set("Lifes : "+str(C_Vaisseau.vie))
-                for i in range(len(space.L_Alien)):
-                    space.L_Alien[i].present = 1
+                for k in range(0,len(space.L_Alien)):
+                    for i in range(len(space.L_Alien[k])):
+                        space.L_Alien[k][i].present = 1
 
 
             else:
                 self.can.coords(self.imgAlien,self.X,self.Y)
-                space.after(200,self.deplacementAlien)
+                space.after(800,self.deplacementAlien)
 
 
     def laser(self):
@@ -184,8 +188,9 @@ class Alien():
                 space.text2.set("Lifes : "+str(C_Vaisseau.vie))
                 if C_Vaisseau.vie == 0:
                     self.can.delete(C_Vaisseau.imgVaisseau)
-                    for i in range(len(space.L_Alien)):
-                        space.L_Alien[i].stop = 1
+                    for k in range(0,len(space.L_Alien)):
+                        for i in range(len(space.L_Alien[k])):
+                            space.L_Alien[k][i].stop = 1
 
         for i in range(len(space.L)):
             if self.present == 1:
@@ -260,14 +265,15 @@ class Vaisseau():
             space.L.pop(self.a)
             space.protections.pop(self.a)
 
-        for i in range(len(space.L_Alien)):
-            if self.present == 1:
-                if (space.L_Alien[i].X <= self.can.coords(self.tir)[0] <= space.L_Alien[i].X + space.L_Alien[i].alien.width()) and (space.L_Alien[i].Y <= self.can.coords(self.tir)[1] <= space.L_Alien[i].Y + space.L_Alien[i].alien.height()):
-                    self.can.delete(self.tir)
-                    self.can.delete(space.L_Alien[i].imgAlien)
-                    space.L_Alien[i].stop = 1
-                    space.L_Alien.pop(i)
-                    self.present = 0
+        for k in range(len(space.L_Alien)):
+            for i in range(len(space.L_Alien[k])):
+                if self.present == 1:
+                    if (space.L_Alien[k][i].X <= self.can.coords(self.tir)[0] <= space.L_Alien[k][i].X + space.L_Alien[k][i].alien.width()) and (space.L_Alien[k][i].Y <= self.can.coords(self.tir)[1] <= space.L_Alien[k][i].Y + space.L_Alien[k][i].alien.height()):
+                        self.can.delete(self.tir)
+                        self.can.delete(space.L_Alien[k][i].imgAlien)
+                        space.L_Alien[k][i].stop = 1
+                        space.L_Alien[k].pop(i)
+                        self.present = 0
 
 
 #def rejouer():
