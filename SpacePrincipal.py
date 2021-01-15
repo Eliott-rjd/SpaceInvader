@@ -101,10 +101,15 @@ class SpaceInvader(Tk):
             cVaisseau.stop = 0
 
     def rejouer(self):
-        for k in range(len(self.listAlien)):
-            for i in range(len(self.listAlien)):
-                self.can.delete(self.listAlien[i].imgAlien)
-                self.listAlien[i].stop = 1
+        if cVaisseau.present == 1:
+            self.can.delete(cVaisseau.tir)
+            cVaisseau.present = 0
+        for i in range(len(self.listAlien)):
+            self.can.delete(self.listAlien[i].imgAlien)
+            self.listAlien[i].stop = 1
+            if self.listAlien[i].present == 1:
+                self.can.delete(self.listAlien[i].tir)
+                self.listAlien[i].present = 0
         for j in range(len(space.listeIlot)):
             self.can.delete(space.listeIlot[j])
             self.can.delete(space.protections[j])
@@ -124,6 +129,8 @@ class SpaceInvader(Tk):
             self.listAlienBonus[0].stop = 1
         self.AlienBonus_present = 0
         self.end_game = 0
+
+
 
 
     def Create_Alien_Bonus(self):
@@ -211,7 +218,7 @@ class Alien():
 
     def laser(self):
         if self.stop == 0 and self.present == 0:
-            rnd = rd.random()*10
+            rnd = rd.random()*5
             if rnd <= 1:
                 self.yl = self.y + self.alien.width()
                 self.xl = self.x + self.alien.height()/2
@@ -328,7 +335,6 @@ class Vaisseau():
 
 
     def deplacementLaser(self):
-
         self.a = -1
         if self.yl <= 0:
             self.can.delete(self.tir)
