@@ -18,8 +18,7 @@ TODO :
 
 from tkinter import Tk,Label,Canvas,Button,StringVar,PhotoImage,messagebox
 import random as rd
-#from ClassVaisseau import Vaisseau
-#from ClassAlien import Alien
+
 
 class SpaceInvader(Tk):
     def __init__(self):
@@ -122,7 +121,7 @@ class SpaceInvader(Tk):
         Sortie : remise à zero et replacement du vaisseau ainsi que des aliens à leur position initiale, reformation des ilots de protection
         et suppression des tirs lancés au moment du clique sur le bouton.'''
 
-        #Destruction de des items
+        #Destruction des items
         if cVaisseau.present == 1:
             self.can.delete(cVaisseau.tir)
             cVaisseau.present = 0
@@ -166,7 +165,7 @@ class SpaceInvader(Tk):
 
         if self.finPartie == 0:
             notAliensup = 0
-            #creation de l'alien bonus uniquement si les sont descendu au moins une fois
+            #creation de l'alien bonus uniquement si les sont descendus au moins une fois
             for i in range (len(self.listAlien)):
                 if self.listAlien[i].y == 0:
                     notAliensup = 1
@@ -212,7 +211,7 @@ class Alien():
         '''Role : permet de déplacer les aliens
         Entrée : la canvas, self.stop (pour savoir si les aliens sont arrêtés, donc s'ils sont détruits ou si la partie est finit), self.toucherDroite et self.toucherGauche (pour savoir
         s'il y a eu contact avec un bord), listAlien, self.dx et self.dy (pour connaitre le décalage) et self.x et self.y
-        (pour connaitre la position de l'alien), self.verif (pour être sûr que tous les aliens descendent et tournent à gauche
+        (pour connaitre la position de l'alien), self.verif (pour être sûre que tous les aliens descendent et tournent à gauche
         en même temps)
         Sortie : les aliens se déplacent ou s'arrêtent à certaines conditions'''
 
@@ -244,7 +243,7 @@ class Alien():
                 self.toucherGauche = 0
             self.x += self.dx
 
-            #Arret si les aliens arrivent au milieu du canvas (gameovers)
+            #Arret si les aliens arrivent au milieu du canvas (gameover)
             if self.y >= space.hauteur/2:
                 self.can.coords(self.imgAlien,self.x,self.y)
                 self.can.delete(cVaisseau.imgVaisseau)
@@ -291,7 +290,7 @@ class Alien():
         le touche, se détruit s'il est en dehors du canvas'''
 
         self.a = -1
-        #destrcution du laser s"il est en dehors du canvas
+        #destruction du laser s'il est en dehors du canvas
         if self.yl >= space.hauteur:
             self.present = 0
             self.can.delete(self.tir)
@@ -304,7 +303,7 @@ class Alien():
 
         #prescence d'un laser sur la canvas
         if self.present == 1:
-            #le tir toucge le vaisseau
+            #le tir touche le vaisseau
             if (cVaisseau.xv <= self.can.coords(self.tir)[0] <= cVaisseau.xv + cVaisseau.vaisseau.width()) and (cVaisseau.yv - cVaisseau.vaisseau.height()<= self.can.coords(self.tir)[3] <= cVaisseau.yv):
                 self.present = 0
                 self.can.delete(self.tir)
@@ -321,7 +320,7 @@ class Alien():
                     space.finPartie = 1
                     messagebox.showinfo('GameOver','Vous avez perdu')
 
-        #destrcution des bout d'ilots
+        #destruction des bouts d'ilots
         for i in range(len(space.listeIlot)):
             if self.present == 1:
                 if (space.listeIlot[i])[0] <= self.can.coords(self.tir)[0] <= (space.listeIlot[i])[2] and (space.listeIlot[i])[1] <= self.can.coords(self.tir)[3] <= (space.listeIlot[i])[3]:
@@ -368,7 +367,7 @@ class AlienBonus():
 
 class Vaisseau():
     def __init__(self):
-        '''Role : initalisation de la class Vaisseau'''
+        '''Role : initalisation de la classe Vaisseau'''
         self.can = space.can
         self.xv = space.longueur/2
         self.yv = space.hauteur
@@ -428,19 +427,19 @@ class Vaisseau():
 
 
         self.a = -1
-        #destrcution du laser s"il arrive trop haut
+        #destruction du laser s'il arrive trop haut
         if self.yl <= 0:
             self.can.delete(self.tir)
             self.present = 0
 
-        #deplacment du tir vers le haut
+        #deplacement du tir vers le haut
         else:
             self.yl -= self.dy
             self.can.coords(self.tir, self.xl+self.vaisseau.width()/2-2, self.yl-self.vaisseau.height()-30, self.xl+self.vaisseau.width()/2+2, self.yl-self.vaisseau.height())
             space.after(20, self.deplacementLaser)
 
 
-        #destruction des bout d'ilots au contact du laser
+        #destruction des bouts d'ilots au contact du laser
         for i in range(len(space.listeIlot)):
             if self.present == 1:
                 if (space.listeIlot[i])[0] <= self.can.coords(self.tir)[0] <= (space.listeIlot[i])[2] and (space.listeIlot[i])[1] <= self.can.coords(self.tir)[1] <= (space.listeIlot[i])[3]:
@@ -454,7 +453,7 @@ class Vaisseau():
             space.listeIlot.pop(self.a)
             space.protections.pop(self.a)
 
-        #test du contact entre le tir et un alien avec victoire s'il sont tous détruit
+        #test du contact entre le tir et un alien avec victoire s'il sont tous détruits
         for i in range(len(space.listAlien)):
             if self.present == 1:
                 if (space.listAlien[i].x <= self.can.coords(self.tir)[0] <= space.listAlien[i].x + space.listAlien[i].alien.width()) and (space.listAlien[i].y <= self.can.coords(self.tir)[1] <= space.listAlien[i].y + space.listAlien[i].alien.height()):
