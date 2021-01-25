@@ -251,7 +251,7 @@ class Alien():
                 cVaisseau.vie = 0
                 space.text2.set("Lifes : "+str(cVaisseau.vie))
                 for i in range(len(space.listAlien)):
-                    space.listAlien[i].present = 1
+                    space.listAlien[i].present = 0
                     space.listAlien[i].stop = 1
                     if space.alienBonusPresent == 1:
                         space.listAlienBonus[0].stop = 1
@@ -271,7 +271,7 @@ class Alien():
         Sortie : Affichage du laser sur le canvas et appel de la fonction de déplacement du laser'''
 
         if self.stop == 0 and self.present == 0:
-            rnd = rd.random()*30
+            rnd = rd.random()*20
             if rnd <= 1:
                 self.yl = self.y + self.alien.width()
                 self.xl = self.x + self.alien.height()/2
