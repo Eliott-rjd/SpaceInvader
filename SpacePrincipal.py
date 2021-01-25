@@ -289,7 +289,6 @@ class Alien():
             else:
                 self.can.coords(self.imgAlien,self.x,self.y)
                 space.after(self.temps_déplacement,self.deplacementAlien)
-                self.verif += 1
 
 
     def laser(self):
