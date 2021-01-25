@@ -283,8 +283,9 @@ class Alien():
                 self.stop = 1
                 if space.alienBonusPresent == 1:
                     space.listAlienBonus[0].stop = 1
-                space.finPartie = 1
-                messagebox.showinfo('GameOver','Vous avez perdu')
+                if space.finPartie == 0:
+                    space.finPartie = 1
+                    messagebox.showinfo('GameOver','Vous avez perdu')
 
             else:
                 self.can.coords(self.imgAlien,self.x,self.y)
