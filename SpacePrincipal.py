@@ -58,11 +58,13 @@ class SpaceInvader(Tk):
         self.can.grid(row = 2 , column = 1, rowspan = 2, columnspan = 2,  sticky = "w")
 
         self.listAlien = []
+        self.temps_déplacement = 0
         self.listAlienBonus = []
         self.demarrer = 0
         self.score = 0
         self.finPartie = 0
         self.alienBonusPresent = 0
+        self.déjà = 0
         self.listeClasseInit()
         self.ilots()
 
@@ -91,20 +93,34 @@ class SpaceInvader(Tk):
         '''Role : Créer les lignes d'aliens (ici il y a 6 aliens par lignes avec 3 lignes)
         Entrée : Utilisation de listAlien de la classe
         Sortie : Affichage de tous les aliens'''
+        listAlien_ligne1 = []
+        listAlien_ligne2 = []
+        listAlien_ligne3 = []
         self.listAlien = []
         for j in range(0,3):
             for i in range(0,6):
-                cAlien = Alien(self.can,i*60,j*60)
-                self.listAlien.append(cAlien)
+                if j == 0:
+                    cAlien = Alien(self.can,i*60,j*60)
+                    self.temps_déplacement = cAlien.temps_déplacement
+                    listAlien_ligne1.append(cAlien)
+                elif j == 1:
+                    cAlien = Alien(self.can,i*60,j*60)
+                    listAlien_ligne2.append(cAlien)
+                else:
+                    cAlien = Alien(self.can,i*60,j*60)
+                    listAlien_ligne3.append(cAlien)
+        self.listAlien = [listAlien_ligne1,listAlien_ligne2,listAlien_ligne3]
+
 
     def initPartie(self):
         '''Role : demarrer la partie à l'appui du bouton. Met en place les commandes, le score et les vies
         Entrée : self.demarrer de la classe, qui passe à 1 après l'initialisation de la partie pour éviter les bugs lier au spam du bouton démarrer
         Sortie : lancement du déplacement des aliens'''
         if self.demarrer == 0:
-            for i in range(0,len(self.listAlien)):
-                self.listAlien[i].deplacementAlien()
-                self.listAlien[i].laser()
+            for k in range(len(self.listAlien)):
+                for i in range(len(self.listAlien[k])):
+                    self.listAlien[k][i].deplacementAlien()
+                    self.listAlien[k][i].laser()
             self.bind("<Left>",cVaisseau.deplacementVaisseauLeft)
             self.bind("<Right>",cVaisseau.deplacementVaisseauRight)
             self.bind("<space>",cVaisseau.laser)
@@ -125,12 +141,13 @@ class SpaceInvader(Tk):
         if cVaisseau.present == 1:
             self.can.delete(cVaisseau.tir)
             cVaisseau.present = 0
-        for i in range(len(self.listAlien)):
-            self.can.delete(self.listAlien[i].imgAlien)
-            self.listAlien[i].stop = 1
-            if self.listAlien[i].present == 1:
-                self.can.delete(self.listAlien[i].tir)
-                self.listAlien[i].present = 0
+        for k in range(len(self.listAlien)):
+            for i in range(len(self.listAlien[k])):
+                self.can.delete(self.listAlien[k][i].imgAlien)
+                self.listAlien[k][i].stop = 1
+                if self.listAlien[k][i].present == 1:
+                    self.can.delete(self.listAlien[k][i].tir)
+                    self.listAlien[k][i].present = 0
         for j in range(len(space.listeIlot)):
             self.can.delete(space.listeIlot[j])
             self.can.delete(space.protections[j])
@@ -156,7 +173,6 @@ class SpaceInvader(Tk):
 
 
 
-
     def createAlienBonus(self):
         '''Role : création de l'alien bonus de manière aléatoire
         Entrée : self.finParie (pour savoir si il y a une partie en cours, ce qui permet d'arrêter la création d'aliens si la partie se finit,
@@ -165,10 +181,11 @@ class SpaceInvader(Tk):
 
         if self.finPartie == 0:
             notAliensup = 0
-            #creation de l'alien bonus uniquement si les sont descendus au moins une fois
-            for i in range (len(self.listAlien)):
-                if self.listAlien[i].y == 0:
-                    notAliensup = 1
+            #creation de l'alien bonus uniquement si les aliens sont descendus au moins une fois
+            for k in range(len(self.listAlien)):
+                for i in range(len(self.listAlien[k])):
+                    if self.listAlien[k][i].y == 0:
+                        notAliensup = 1
 
             #creation de l'alien bonus
             if notAliensup == 0 and self.alienBonusPresent == 0:
@@ -182,6 +199,28 @@ class SpaceInvader(Tk):
                     cAlienBonus.deplacementAlienBonus()
             space.after(200,self.createAlienBonus)
 
+    def bordAlien(self):
+        if self.déjà == 0:
+            for k in range(len(self.listAlien)):
+                if len(self.listAlien[k]) != 0:
+                    if (self.listAlien[k])[len(self.listAlien[k])-1].x+(self.listAlien[k])[len(self.listAlien[k])-1].dx+(self.listAlien[k])[len(self.listAlien[k])-1].alien.width() > self.longueur:
+                        for k in range(len(self.listAlien)):
+                            for i in range(len(self.listAlien[k])):
+                                self.listAlien[k][i].bord = 1
+
+            for k in range(len(self.listAlien)):
+                if len(self.listAlien[k]) != 0:
+                    if self.listAlien[k][0].x+self.listAlien[k][0].dx < 0:
+                        for k in range(len(self.listAlien)):
+                            for i in range(len(self.listAlien[k])):
+                                self.listAlien[k][i].bord = -1
+            self.déjà = 1
+            time = 2*self.temps_déplacement
+            space.after(time,self.réinit)
+
+    def réinit(self):
+        self.déjà = 0
+
 
 class Alien():
     def __init__(self,canvas,x,y):
@@ -194,8 +233,7 @@ class Alien():
         self.dx = 7
         self.stop = 0
         self.present = 0
-        self.toucherDroit = 0
-        self.toucherGauche = 0
+        self.bord = 0
         self.alien = PhotoImage(file = 'alien.gif')
 
         self.imgAlien = self.can.create_image(self.x, self.y, anchor ='nw',image = self.alien)
@@ -203,8 +241,8 @@ class Alien():
         self.yl = self.y + self.alien.width()
         self.dy = 10
         self.a = -1
-        self.verif = 0
         self.score_alien = 100
+        self.temps_déplacement = 200
 
 
     def deplacementAlien(self):
@@ -217,30 +255,18 @@ class Alien():
 
         #deplacement uniquement si la partie n'est pas en pause (fini ou non commencer)
         if self.stop == 0:
-            self.toucherDroit = 0
-
-            #contact avec le bord droit
-            if (space.listAlien)[len(space.listAlien)-1].x+(space.listAlien)[len(space.listAlien)-1].dx+(space.listAlien)[len(space.listAlien)-1].alien.width() > space.longueur:
-                for i in range(len(space.listAlien)):
-                    space.listAlien[i].toucherDroit = 1
-
-            #contact avec le bord gauche
-            if self.verif % 2 == 0:
-                if space.listAlien[0].x+space.listAlien[0].dx< 0:
-                    for i in range(len(space.listAlien)):
-                        space.listAlien[i].toucherGauche = 1
-                        space.listAlien[i].verif = 1
+            space.bordAlien()
 
             #changement de direction
-            if self.toucherDroit == 1:
+            if self.bord == 1:
                 self.dx = -self.dx
-                self.toucherDroit = 0
+                self.bord = 0
 
             #changement de direction et descente
-            if self.toucherGauche == 1:
+            if self.bord == -1:
                 self.dx = -self.dx
                 self.y += self.alien.height()
-                self.toucherGauche = 0
+                self.bord = 0
             self.x += self.dx
 
             #Arret si les aliens arrivent au milieu du canvas (gameover)
@@ -249,17 +275,20 @@ class Alien():
                 self.can.delete(cVaisseau.imgVaisseau)
                 cVaisseau.vie = 0
                 space.text2.set("Lifes : "+str(cVaisseau.vie))
-                for i in range(len(space.listAlien)):
-                    space.listAlien[i].present = 0
-                    space.listAlien[i].stop = 1
-                    if space.alienBonusPresent == 1:
-                        space.listAlienBonus[0].stop = 1
+                for k in range(len(space.listAlien)-1):
+                    for i in range(len(space.listAlien[k])):
+                        space.listAlien[k][i].present = 0
+                        space.listAlien[k][i].stop = 1
+                self.present = 0
+                self.stop = 1
+                if space.alienBonusPresent == 1:
+                    space.listAlienBonus[0].stop = 1
                 space.finPartie = 1
                 messagebox.showinfo('GameOver','Vous avez perdu')
 
             else:
                 self.can.coords(self.imgAlien,self.x,self.y)
-                space.after(200,self.deplacementAlien)
+                space.after(self.temps_déplacement,self.deplacementAlien)
                 self.verif += 1
 
 
@@ -301,7 +330,7 @@ class Alien():
             self.can.coords(self.tir, self.xl-2, self.yl, self.xl+2, self.yl + 30)
             space.after(20, self.deplacementLaser)
 
-        #prescence d'un laser sur la canvas
+        #presence d'un laser sur le canvas
         if self.present == 1:
             #le tir touche le vaisseau
             if (cVaisseau.xv <= self.can.coords(self.tir)[0] <= cVaisseau.xv + cVaisseau.vaisseau.width()) and (cVaisseau.yv - cVaisseau.vaisseau.height()<= self.can.coords(self.tir)[3] <= cVaisseau.yv):
@@ -313,10 +342,11 @@ class Alien():
                 #il n'y a plus de vie (gameover)
                 if cVaisseau.vie == 0:
                     self.can.delete(cVaisseau.imgVaisseau)
-                    for i in range(len(space.listAlien)):
-                        space.listAlien[i].stop = 1
-                        if space.alienBonusPresent == 1:
-                            space.listAlienBonus[0].stop = 1
+                    for k in range(len(space.listAlien)):
+                        for i in range(len(space.listAlien[k])):
+                            space.listAlien[k][i].stop = 1
+                            if space.alienBonusPresent == 1:
+                                space.listAlienBonus[0].stop = 1
                     space.finPartie = 1
                     messagebox.showinfo('GameOver','Vous avez perdu')
 
@@ -454,22 +484,23 @@ class Vaisseau():
             space.protections.pop(self.a)
 
         #test du contact entre le tir et un alien avec victoire s'il sont tous détruits
-        for i in range(len(space.listAlien)):
-            if self.present == 1:
-                if (space.listAlien[i].x <= self.can.coords(self.tir)[0] <= space.listAlien[i].x + space.listAlien[i].alien.width()) and (space.listAlien[i].y <= self.can.coords(self.tir)[1] <= space.listAlien[i].y + space.listAlien[i].alien.height()):
-                    self.can.delete(self.tir)
-                    self.present = 0
-                    self.can.delete(space.listAlien[i].imgAlien)
-                    space.listAlien[i].stop = 1
-                    space.score += space.listAlien[i].score_alien
-                    space.listAlien.pop(i)
-                    space.text1.set("Score : "+str(space.score))
-                    if space.listAlien == []:
-                        cVaisseau.stop = 1
-                        if space.alienBonusPresent == 1:
-                            space.listAlienBonus[0].stop = 1
-                        space.finPartie = 1
-                        messagebox.showinfo('Gagné','Vous avez gagné, félicitations')
+        for k in range(len(space.listAlien)):
+            for i in range(len(space.listAlien[k])):
+                if self.present == 1:
+                    if (space.listAlien[k][i].x <= self.can.coords(self.tir)[0] <= space.listAlien[k][i].x + space.listAlien[k][i].alien.width()) and (space.listAlien[k][i].y <= self.can.coords(self.tir)[1] <= space.listAlien[k][i].y + space.listAlien[k][i].alien.height()):
+                        self.can.delete(self.tir)
+                        self.present = 0
+                        self.can.delete(space.listAlien[k][i].imgAlien)
+                        space.listAlien[k][i].stop = 1
+                        space.score += space.listAlien[k][i].score_alien
+                        space.listAlien[k].pop(i)
+                        space.text1.set("Score : "+str(space.score))
+                        if space.listAlien[0] == [] and space.listAlien[1] == [] and space.listAlien[2] == []:
+                            cVaisseau.stop = 1
+                            if space.alienBonusPresent == 1:
+                                space.listAlienBonus[0].stop = 1
+                            space.finPartie = 1
+                            messagebox.showinfo('Gagné','Vous avez gagné, félicitations')
 
         #test du contact avec l'alien bonus
         if space.alienBonusPresent == 1:
@@ -482,7 +513,6 @@ class Vaisseau():
                     space.alienBonusPresent = 0
                     space.score += space.listAlienBonus[0].score_alien_bonus
                     space.text1.set("Score : "+str(space.score))
-
 
 
 space = SpaceInvader()
