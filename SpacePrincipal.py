@@ -26,14 +26,11 @@ class SpaceInvader(Tk):
         self.title('Space Invaders')
 
         self.protections = []
-        self.L= []
         self.hauteur = 500
         self.longueur = 500
         self.can = Canvas(self,width = self.hauteur,height = self.longueur)
 
-
         self.photo = PhotoImage(file = 'espace.gif')
-
         self.item = self.can.create_image(0, 0, anchor = 'nw', image = self.photo)
 
         self.text1 = StringVar()
@@ -291,10 +288,10 @@ class Alien():
         self.alien = PhotoImage(file = 'alien.gif')
 
         self.imgAlien = self.can.create_image(self.x, self.y, anchor ='nw',image = self.alien)
-        self.xl = self.x + self.alien.height()/2
-        self.yl = self.y + self.alien.width()
-        self.dy = 10
-        self.a = -1
+        self.xLaser = self.x + self.alien.height()/2
+        self.yLaser = self.y + self.alien.width()
+        self.dyLaser = 10
+        self.ind = -1
         self.score_alien = 100
         self.probaLaser = 20
 
@@ -302,7 +299,7 @@ class Alien():
     def deplacementAlien(self):
         '''Role : permet de déplacer les aliens
         Entrée : la canvas, self.stop (pour savoir si les aliens sont arrêtés, donc s'ils sont détruits ou si la partie est finie), self.bord (pour savoir
-        s'il y a eu un contact avec un bord), listAlien, self.dx et self.dy (pour connaitre le décalage des positions) et self.x et self.y
+        s'il y a eu un contact avec un bord), listAlien, self.dx et self.alien.height() (pour connaitre le décalage des positions selon l'axe des x ou des y) et self.x et self.y
         (pour connaitre la position de l'alien)
         Sortie : les aliens se déplacent ou s'arrêtent à certaines conditions (en fonction de self.stop)'''
 
@@ -349,15 +346,15 @@ class Alien():
     def laser(self):
         '''Role : permet de créer un laser tiré par les aliens aléatoirement
         Entrée : self.stop et self.present (même que précédemment, lorsque self.present = 1, il y a déjà un tir présent sur le canvas et l'alien ne pourra pas en retirer un nouveau tant que le tir n'est pas détruit),
-        self.yl et self.xl (qui définissent la position du laser)
+        self.yLaser et self.xLaser (qui définissent la position du laser)
         Sortie : Affichage du laser sur le canvas et appel de la fonction de déplacement du laser'''
 
         if self.stop == 0 and self.present == 0:
             rnd = rd.random()*self.probaLaser
             if rnd <= 1:
-                self.yl = self.y + self.alien.width()
-                self.xl = self.x + self.alien.height()/2
-                self.tir = self.can.create_rectangle(self.xl-2, self.yl, self.xl+2, self.yl + 30,fill='red')
+                self.yLaser = self.y + self.alien.width()
+                self.xLaser = self.x + self.alien.height()/2
+                self.tir = self.can.create_rectangle(self.xLaser-2, self.yLaser, self.xLaser+2, self.yLaser + 30,fill='red')
                 self.present = 1
                 self.deplacementLaser()
                 space.after(800,self.laser)
@@ -367,21 +364,21 @@ class Alien():
 
     def deplacementLaser(self):
         '''Role : Permet de déplacer le laser tiré par l'alien
-        Entrée : self.a (qui permet de supprimer les petits rectangles des ilots lorsqu'un laser entre en contact), self.xl et self.yl,
-        le canvas, la liste des ilots, self.tir (le laser tiré), self.present, le texte pour modifier les vie
+        Entrée : self.ind (qui permet de supprimer les petits rectangles des ilots lorsqu'un laser entre en contact), self.xLaser et self.yLaser,
+        le canvas, la liste des ilots, self.tir (le laser tiré), self.present, le texte pour modifier les vies
         Sortie : le tir se déplace et réduit le nombre de vie s'il touche le vaisseau, détruit un bout de l'ilot s'il
         le touche, se détruit s'il est en dehors du canvas'''
 
-        self.a = -1
+        self.ind = -1
         #destruction du laser s'il est en dehors du canvas
-        if self.yl >= space.hauteur:
+        if self.yLaser >= space.hauteur:
             self.present = 0
             self.can.delete(self.tir)
             space.after(800,self.laser)
 
         else:
-            self.yl += self.dy
-            self.can.coords(self.tir, self.xl-2, self.yl, self.xl+2, self.yl + 30)
+            self.yLaser += self.dyLaser
+            self.can.coords(self.tir, self.xLaser-2, self.yLaser, self.xLaser+2, self.yLaser + 30)
             space.after(20, self.deplacementLaser)
 
         #presence d'un laser sur le canvas
@@ -412,11 +409,11 @@ class Alien():
                     self.can.delete(space.protections[i])
                     self.present = 0
                     self.can.delete(self.tir)
-                    self.a = i
+                    self.ind = i
 
-        if self.a != -1:
-            space.listeIlot.pop(self.a)
-            space.protections.pop(self.a)
+        if self.ind != -1:
+            space.listeIlot.pop(self.ind)
+            space.protections.pop(self.ind)
 
 
 class AlienBonus():
@@ -457,12 +454,12 @@ class Vaisseau():
         self.yv = space.hauteur
         self.vaisseau = PhotoImage(file = 'vaisseau.gif')
         self.imgVaisseau = self.can.create_image(self.xv, self.yv, anchor = 'sw', image = self.vaisseau)
-        self.xl = self.xv
-        self.yl = self.yv
-        self.dy = 10
+        self.xLaser = self.xv
+        self.yLaser = self.yv
+        self.dyLaser = 10
         self.present = 0
         self.vie = 3
-        self.a = -1
+        self.ind = -1
         self.stop = 0
 
 
@@ -495,31 +492,31 @@ class Vaisseau():
         Sortie ; création du tir du vaisseau et appel de la fonction du déplacement de ce tir'''
 
         if self.present == 0 and self.vie > 0 and self.stop == 0:
-            self.xl = self.xv
-            self.yl = self.yv
-            self.tir = self.can.create_rectangle(self.xl+self.vaisseau.width()/2-2, self.yl-self.vaisseau.height()-30, self.xl+self.vaisseau.width()/2+2, self.yl-self.vaisseau.height(),fill='blue')
+            self.xLaser = self.xv
+            self.yLaser = self.yv
+            self.tir = self.can.create_rectangle(self.xLaser+self.vaisseau.width()/2-2, self.yLaser-self.vaisseau.height()-30, self.xLaser+self.vaisseau.width()/2+2, self.yLaser-self.vaisseau.height(),fill='blue')
             self.present = 1
             self.deplacementLaser()
 
 
     def deplacementLaser(self):
         '''Role : Permet de déplacer le laser tiré par le vaisseau et finir la partie si tous les aliens sont détruits
-        Entrée : self.a (qui permet de supprimer les petits rectangles des ilots lorsqu'un laser entre en contact), self.xl et self.yl,
+        Entrée : self.ind (qui permet de supprimer les petits rectangles des ilots lorsqu'un laser entre en contact), self.xLaser et self.yLaser,
         le canvas, la liste des ilots, self.tir (le laser tirer), self.present, self.score
         Sortie : le tir se déplace et le score augmente en fonction de l'alien touché, détruit un bout de l'ilot s'il
         le touche, se détruit s'il est en dehors du canvas'''
 
 
-        self.a = -1
+        self.ind = -1
         #destruction du laser s'il arrive trop haut
-        if self.yl <= 0:
+        if self.yLaser <= 0:
             self.can.delete(self.tir)
             self.present = 0
 
         #deplacement du tir vers le haut
         else:
-            self.yl -= self.dy
-            self.can.coords(self.tir, self.xl+self.vaisseau.width()/2-2, self.yl-self.vaisseau.height()-30, self.xl+self.vaisseau.width()/2+2, self.yl-self.vaisseau.height())
+            self.yLaser -= self.dyLaser
+            self.can.coords(self.tir, self.xLaser+self.vaisseau.width()/2-2, self.yLaser-self.vaisseau.height()-30, self.xLaser+self.vaisseau.width()/2+2, self.yLaser-self.vaisseau.height())
             space.after(20, self.deplacementLaser)
 
 
@@ -531,11 +528,11 @@ class Vaisseau():
                     self.can.delete(space.protections[i])
                     self.can.delete(self.tir)
                     self.present = 0
-                    self.a = i
+                    self.ind = i
 
-        if self.a != -1:
-            space.listeIlot.pop(self.a)
-            space.protections.pop(self.a)
+        if self.ind != -1:
+            space.listeIlot.pop(self.ind)
+            space.protections.pop(self.ind)
 
         #test du contact entre le tir et un alien avec victoire s'il sont tous détruits
         for k in range(len(space.listAlien)):
