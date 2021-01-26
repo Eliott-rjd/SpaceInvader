@@ -16,7 +16,7 @@ TODO :
     Ajouter fonctionnalité bonus : sauvegarde du score, plusieurs niveaux
 """
 
-from tkinter import Tk,Label,Canvas,Button,StringVar,PhotoImage,messagebox
+from tkinter import Tk, Label, Canvas, Button, StringVar, PhotoImage, messagebox, Entry, END
 import random as rd
 
 
@@ -47,17 +47,22 @@ class SpaceInvader(Tk):
 
         self.buttonQuit = Button(self , text = 'Quitter' , fg = 'red' , command = self.destroy)
         self.buttonReplay = Button(self, text = 'Rejouer' , command = self.rejouer)
-
         self.newGame = Button(self, text = 'demarrer une partie', command = self.initPartie)
+
+        self.buttonCheatCode = Button(self, text = 'Entrez un code triche' , command = self.getEntry)
+        self.entreeCode = Entry(self, width = 20)
 
         self.labelScore.grid(row = 1, column = 1, sticky = 'w')
         self.labelVie.grid(row = 1, column = 2, sticky = 'e')
         self.newGame.grid(row = 2, column = 3, rowspan = 1, sticky = 'e')
         self.buttonReplay.grid(row = 2, column = 4, rowspan = 1, sticky = "e")
         self.buttonQuit.grid(row = 3, column = 3, rowspan = 1, sticky = "e")
+        self.buttonCheatCode.grid(row = 4, column = 3, rowspan = 1, sticky = "e" )
+        self.entreeCode.grid(row = 4, column = 4, sticky = "e"  )
         self.can.grid(row = 2 , column = 1, rowspan = 2, columnspan = 2,  sticky = "w")
 
         self.listAlien = []
+        self.nbAlientot = 0
         self.temps_déplacement = 0
         self.listAlienBonus = []
         self.demarrer = 0
@@ -65,6 +70,8 @@ class SpaceInvader(Tk):
         self.finPartie = 0
         self.alienBonusPresent = 0
         self.déjà = 0
+        self.cheatCode = {"Merci":"2","2469":"4","72g7hy12":"999999999"}
+        self.code_trouvé = []
         self.listeClasseInit()
         self.ilots()
 
@@ -101,14 +108,16 @@ class SpaceInvader(Tk):
             for i in range(0,6):
                 if j == 0:
                     cAlien = Alien(self.can,i*60,j*60)
-                    self.temps_déplacement = cAlien.temps_déplacement
                     listAlien_ligne1.append(cAlien)
+                    self.nbAlientot += 1
                 elif j == 1:
                     cAlien = Alien(self.can,i*60,j*60)
                     listAlien_ligne2.append(cAlien)
+                    self.nbAlientot += 1
                 else:
                     cAlien = Alien(self.can,i*60,j*60)
                     listAlien_ligne3.append(cAlien)
+                    self.nbAlientot += 1
         self.listAlien = [listAlien_ligne1,listAlien_ligne2,listAlien_ligne3]
 
 
@@ -164,13 +173,13 @@ class SpaceInvader(Tk):
         self.text2.set("Lifes : "+str(cVaisseau.vie))
         self.score = 0
         self.text1.set("Score : "+str(self.score))
+        self.code_trouvé = []
 
         if len(self.listAlienBonus) == 1:
             self.can.delete(self.listAlienBonus[0].imgAlienBonus)
             self.listAlienBonus[0].stop = 1
         self.alienBonusPresent = 0
         self.finPartie = 0
-
 
 
     def createAlienBonus(self):
@@ -199,8 +208,10 @@ class SpaceInvader(Tk):
                     cAlienBonus.deplacementAlienBonus()
             space.after(200,self.createAlienBonus)
 
+
     def bordAlien(self):
         if self.déjà == 0:
+            self.temps_déplacement = self.listAlien[0][0].temps_déplacement
             for k in range(len(self.listAlien)):
                 if len(self.listAlien[k]) != 0:
                     if (self.listAlien[k])[len(self.listAlien[k])-1].x+(self.listAlien[k])[len(self.listAlien[k])-1].dx+(self.listAlien[k])[len(self.listAlien[k])-1].alien.width() > self.longueur:
@@ -216,10 +227,25 @@ class SpaceInvader(Tk):
                                 self.listAlien[k][i].bord = -1
             self.déjà = 1
             time = 2*self.temps_déplacement
-            space.after(time,self.réinit)
+            space.after(int(time),self.réinit)
+
 
     def réinit(self):
         self.déjà = 0
+
+
+    def getEntry(self):
+        essaie = self.entreeCode.get()                          # On récupère la saisie de l'utilisateur, puis on rafraichit la zone de texte
+        self.entreeCode.delete(0,END)
+        return self.Vérif_code(essaie)
+
+    def Vérif_code(self,essaie):
+        for clé in self.cheatCode.keys():
+            if essaie == clé and essaie not in self.code_trouvé:
+                cVaisseau.vie += int(self.cheatCode[clé])
+                self.text2.set("Lifes : "+str(cVaisseau.vie))
+                self.code_trouvé.append(clé)
+
 
 
 class Alien():
@@ -242,7 +268,9 @@ class Alien():
         self.dy = 10
         self.a = -1
         self.score_alien = 100
-        self.temps_déplacement = 200
+        self.temps_déplacement_init = 300
+        self.temps_déplacement = self.temps_déplacement_init
+        self.probaLaser = 30
 
 
     def deplacementAlien(self):
@@ -255,6 +283,12 @@ class Alien():
 
         #deplacement uniquement si la partie n'est pas en pause (fini ou non commencer)
         if self.stop == 0:
+            AlienCunter = 1
+            for k in range(len(space.listAlien)):
+                for i in range(len(space.listAlien[k])):
+                    AlienCunter += 1
+            self.temps_déplacement = self.temps_déplacement_init*(1.04 - 0.04*(space.nbAlientot/AlienCunter))
+
             space.bordAlien()
 
             #changement de direction
@@ -289,7 +323,7 @@ class Alien():
 
             else:
                 self.can.coords(self.imgAlien,self.x,self.y)
-                space.after(self.temps_déplacement,self.deplacementAlien)
+                space.after(int(self.temps_déplacement),self.deplacementAlien)
 
 
     def laser(self):
@@ -299,7 +333,7 @@ class Alien():
         Sortie : Affichage du laser sur le canvas et appel de la fonction de déplacement du laser'''
 
         if self.stop == 0 and self.present == 0:
-            rnd = rd.random()*20
+            rnd = rd.random()*self.probaLaser
             if rnd <= 1:
                 self.yl = self.y + self.alien.width()
                 self.xl = self.x + self.alien.height()/2
