@@ -59,13 +59,14 @@ class SpaceInvader(Tk):
 
         self.listAlien = []
         self.nbAlientot = 0
-        self.tempsDeplacement = 0
+        self.tempsDeplacementInit = 300
+        self.tempsDeplacement = self.tempsDeplacementInit              # Il s'agit du temps de déplacement des aliens
         self.listAlienBonus = []
         self.demarrer = 0
         self.score = 0
         self.finPartie = 0
         self.alienBonusPresent = 0
-        self.deja = 0
+        self.dejaTouche = 0
         self.cheatCode = {"Merci":"2","2469":"4","72g7hy12":"999999999"}
         self.codeTrouve = []
         self.listeClasseInit()
@@ -97,7 +98,7 @@ class SpaceInvader(Tk):
         Entrée : Utilisation de listAlien de la classe
         Sortie : Affichage de tous les aliens et création de la liste complète des aliens comprenant elle même
         3 listes (qui sont les 3 lignes)'''
-        
+
         listAlienLigne1 = []
         listAlienLigne2 = []
         listAlienLigne3 = []
@@ -161,6 +162,7 @@ class SpaceInvader(Tk):
 
         #reinitialisation des items
         self.ilots()
+        self.nbAlientot = 0
         self.listeClasseInit()
         self.demarrer = 0
         self.can.delete(cVaisseau.imgVaisseau)
@@ -209,11 +211,11 @@ class SpaceInvader(Tk):
 
     def bordAlien(self):
         '''Role : Gérer la colision avec les bords
-        Entrée : self.deja, self.tempsDeplacement, la liste des aliens
-        Sortie : s'il y a contact, ajout 1 a self.bord (ce qui va permettre aux aliens de changer de direction dans 
-        deplacementAlien) '''
-        if self.deja == 0:
-            self.tempsDeplacement = self.listAlien[0][0].tempsDeplacement
+        Entrée : self.dejaTouche, self.tempsDeplacement, la liste des aliens
+        Sortie : s'il y a contact, donne la valeur 1 à self.bord pour tous les aliens si le bord droit est touché, -1 si c'est le bord gauche, (ce qui va permettre aux aliens de changer de direction
+        dans deplacementAlien), si aucun bord n'est touché, self.bord reste à 0'''
+
+        if self.dejaTouche == 0:
             for k in range(len(self.listAlien)):
                 if len(self.listAlien[k]) != 0:
                     if (self.listAlien[k])[len(self.listAlien[k])-1].x+(self.listAlien[k])[len(self.listAlien[k])-1].dx+(self.listAlien[k])[len(self.listAlien[k])-1].alien.width() > self.longueur:
@@ -227,36 +229,50 @@ class SpaceInvader(Tk):
                         for k in range(len(self.listAlien)):
                             for i in range(len(self.listAlien[k])):
                                 self.listAlien[k][i].bord = -1
-            self.deja = 1
-            time = 2*self.tempsDeplacement
+            self.dejaTouche = 1
+            time = 0.5*self.tempsDeplacement
             space.after(int(time),self.reinit)
 
 
     def reinit(self):
-        '''Role : réinitialiser self.deja à 0'''
-        self.deja = 0
+        '''Role : réinitialiser self.dejaTouche à 0, en restant à 1 un certains temps, on évite que plusieurs aliens rentrent dans la fonction bordAlien et réinitialise le self.bord des aliens qui ont déjà bougé à + ou -1
+        lorsque plusieurs aliens touchent le bord en même temps'''
+        self.dejaTouche = 0
 
 
     def getEntry(self):
         '''Role : Permet de récupérer le cheatCode saisie par l'utilisateur
         Entrée : aucune, on va récuperer ce que l'utilisateur va saisir dans l'Entry(zone de texte)
         Sortie : appel la fonction de verification du code par rapport au code saisie et remet a vide l'Entry '''
-        
+
         # On récupère la saisie de l'utilisateur, puis on rafraichit la zone de texte
         essaie = self.entreeCode.get()
         self.entreeCode.delete(0,END)
         return self.verifCode(essaie)
 
     def verifCode(self,essaie):
-        '''Role : Vérfier si le code de triche saisie fait partie de la liste des differents codes
-        Entrée : essaie (le code de triche saisie) et le dictionnaire contenant les codes et leur valeur
-        Sortie : Rajoute un certains nombres de vies en fonctions du code saisie'''
-        
+        '''Role : Vérfier si le code de triche saisie fait partie de la liste des différents codes
+        Entrée : essaie (le code de triche saisie) et le dictionnaire contenant les codes et leur valeur (points de vie)
+        Sortie : Rajoute un certains nombre de vies en fonction du code saisie, self.codeTrouve empêche le spam d'ajouts de vies une fois que le code a déjà été saisi'''
+
         for clé in self.cheatCode.keys():
             if essaie == clé and essaie not in self.codeTrouve:
                 cVaisseau.vie += int(self.cheatCode[clé])
                 self.text2.set("Lifes : "+str(cVaisseau.vie))
                 self.codeTrouve.append(clé)
+
+    def vitesseAlien(self):
+        '''Role : Accélère la vitesse des aliens lorsque le nombre d'aliens diminue
+        Entrée : self.nbAlientot, le nombre initial d'aliens, alienTué et alienCunter nous servent à compter le nombre d'aliens tués
+        Sortie : Renvoie le nouveau temps de déplacement des aliens en fonction du nombre d'aliens tués'''
+
+        alienTué = 0
+        alienCunter = 0
+        for k in range(len(self.listAlien)):
+            for i in range(len(self.listAlien[k])):
+                alienCunter += 1
+        alienTué = self.nbAlientot - alienCunter
+        self.tempsDeplacement = self.tempsDeplacementInit*(1 - alienTué*0.05)
 
 
 
@@ -280,35 +296,27 @@ class Alien():
         self.dy = 10
         self.a = -1
         self.score_alien = 100
-        self.tempsDeplacementInit = 300
-        self.tempsDeplacement = self.tempsDeplacementInit
-        self.probaLaser = 30
+        self.probaLaser = 20
 
 
     def deplacementAlien(self):
         '''Role : permet de déplacer les aliens
-        Entrée : la canvas, self.stop (pour savoir si les aliens sont arrêtés, donc s'ils sont détruits ou si la partie est finit), self.toucherDroite et self.toucherGauche (pour savoir
-        s'il y a eu contact avec un bord), listAlien, self.dx et self.dy (pour connaitre le décalage) et self.x et self.y
-        (pour connaitre la position de l'alien), self.verif (pour être sûre que tous les aliens descendent et tournent à gauche
-        en même temps)
-        Sortie : les aliens se déplacent ou s'arrêtent à certaines conditions'''
+        Entrée : la canvas, self.stop (pour savoir si les aliens sont arrêtés, donc s'ils sont détruits ou si la partie est finie), self.bord (pour savoir
+        s'il y a eu un contact avec un bord), listAlien, self.dx et self.dy (pour connaitre le décalage des positions) et self.x et self.y
+        (pour connaitre la position de l'alien)
+        Sortie : les aliens se déplacent ou s'arrêtent à certaines conditions (en fonction de self.stop)'''
 
         #deplacement uniquement si la partie n'est pas en pause (fini ou non commencer)
         if self.stop == 0:
-            alienCunter = 1
-            for k in range(len(space.listAlien)):
-                for i in range(len(space.listAlien[k])):
-                    alienCunter += 1
-            self.tempsDeplacement = self.tempsDeplacementInit*(1.04 - 0.04*(space.nbAlientot/alienCunter))
-
+            space.vitesseAlien()
             space.bordAlien()
 
-            #changement de direction
+            #changement de direction (bord droit)
             if self.bord == 1:
                 self.dx = -self.dx
                 self.bord = 0
 
-            #changement de direction et descente
+            #changement de direction et descente (bord gauche)
             if self.bord == -1:
                 self.dx = -self.dx
                 self.y += self.alien.height()
@@ -335,7 +343,7 @@ class Alien():
 
             else:
                 self.can.coords(self.imgAlien,self.x,self.y)
-                space.after(int(self.tempsDeplacement),self.deplacementAlien)
+                space.after(int(space.tempsDeplacement),self.deplacementAlien)
 
 
     def laser(self):
@@ -358,7 +366,7 @@ class Alien():
 
 
     def deplacementLaser(self):
-        '''Role : Permet de déplace le laser tiré par l'alien
+        '''Role : Permet de déplacer le laser tiré par l'alien
         Entrée : self.a (qui permet de supprimer les petits rectangles des ilots lorsqu'un laser entre en contact), self.xl et self.yl,
         le canvas, la liste des ilots, self.tir (le laser tiré), self.present, le texte pour modifier les vie
         Sortie : le tir se déplace et réduit le nombre de vie s'il touche le vaisseau, détruit un bout de l'ilot s'il
