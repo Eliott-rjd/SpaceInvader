@@ -7,13 +7,9 @@ Eliott RAJAUD et Axel GUILLET
 18/12/20
 TODO :
     Mettre le deplacement gauche et droite du vaisseau en une seul fct
-    Mieux séparer le fichier : faire fichier a part avec les classes et autres avec la creation TkInter
+    Mieux séparer le fichier : faire fichier a part avec les classes et autres avec la création TkInter
 
-    Regle le bug de deplacement de toute les lignes : lorsqu'il reste de aliens sur la colonne la plus a droite/gauche
-    parfois ne prend pas en compte la colonne pour le contact avec le bord du canvas -- souvent lorsque l'alien est détruit
-    juste avant la colision
-
-    Ajouter fonctionnalité bonus : sauvegarde du score, plusieurs niveaux
+    Ajouter d'autres fonctionnalités bonus : sauvegarde du score, plusieurs niveaux
 """
 
 from tkinter import Tk, Label, Canvas, Button, StringVar, PhotoImage, messagebox, Entry, END
@@ -63,15 +59,15 @@ class SpaceInvader(Tk):
 
         self.listAlien = []
         self.nbAlientot = 0
-        self.temps_déplacement = 0
+        self.tempsDeplacement = 0
         self.listAlienBonus = []
         self.demarrer = 0
         self.score = 0
         self.finPartie = 0
         self.alienBonusPresent = 0
-        self.déjà = 0
+        self.deja = 0
         self.cheatCode = {"Merci":"2","2469":"4","72g7hy12":"999999999"}
-        self.code_trouvé = []
+        self.codeTrouve = []
         self.listeClasseInit()
         self.ilots()
 
@@ -99,26 +95,28 @@ class SpaceInvader(Tk):
     def listeClasseInit(self):
         '''Role : Créer les lignes d'aliens (ici il y a 6 aliens par lignes avec 3 lignes)
         Entrée : Utilisation de listAlien de la classe
-        Sortie : Affichage de tous les aliens'''
-        listAlien_ligne1 = []
-        listAlien_ligne2 = []
-        listAlien_ligne3 = []
+        Sortie : Affichage de tous les aliens et création de la liste complète des aliens comprenant elle même
+        3 listes (qui sont les 3 lignes)'''
+        
+        listAlienLigne1 = []
+        listAlienLigne2 = []
+        listAlienLigne3 = []
         self.listAlien = []
         for j in range(0,3):
             for i in range(0,6):
                 if j == 0:
                     cAlien = Alien(self.can,i*60,j*60)
-                    listAlien_ligne1.append(cAlien)
+                    listAlienLigne1.append(cAlien)
                     self.nbAlientot += 1
                 elif j == 1:
                     cAlien = Alien(self.can,i*60,j*60)
-                    listAlien_ligne2.append(cAlien)
+                    listAlienLigne2.append(cAlien)
                     self.nbAlientot += 1
                 else:
                     cAlien = Alien(self.can,i*60,j*60)
-                    listAlien_ligne3.append(cAlien)
+                    listAlienLigne3.append(cAlien)
                     self.nbAlientot += 1
-        self.listAlien = [listAlien_ligne1,listAlien_ligne2,listAlien_ligne3]
+        self.listAlien = [listAlienLigne1,listAlienLigne2,listAlienLigne3]
 
 
     def initPartie(self):
@@ -143,7 +141,7 @@ class SpaceInvader(Tk):
         '''Role : permet de rejouer en nettoyant le canvas et en réinitialisant les données (vie, score, images)
         Entrée : prend le canvas, cVaisseau.present (représente la présence ou non d'un laser du vaisseau), la liste des aliens,
         le score et le nombre de vie
-        Sortie : remise à zero et replacement du vaisseau ainsi que des aliens à leur position initiale, reformation des ilots de protection
+        Sortie : remise à zéro et replacement du vaisseau ainsi que des aliens à leur position initiale, reformation des ilots de protection
         et suppression des tirs lancés au moment du clique sur le bouton.'''
 
         #Destruction des items
@@ -173,7 +171,7 @@ class SpaceInvader(Tk):
         self.text2.set("Lifes : "+str(cVaisseau.vie))
         self.score = 0
         self.text1.set("Score : "+str(self.score))
-        self.code_trouvé = []
+        self.codeTrouve = []
 
         if len(self.listAlienBonus) == 1:
             self.can.delete(self.listAlienBonus[0].imgAlienBonus)
@@ -210,8 +208,12 @@ class SpaceInvader(Tk):
 
 
     def bordAlien(self):
-        if self.déjà == 0:
-            self.temps_déplacement = self.listAlien[0][0].temps_déplacement
+        '''Role : Gérer la colision avec les bords
+        Entrée : self.deja, self.tempsDeplacement, la liste des aliens
+        Sortie : s'il y a contact, ajout 1 a self.bord (ce qui va permettre aux aliens de changer de direction dans 
+        deplacementAlien) '''
+        if self.deja == 0:
+            self.tempsDeplacement = self.listAlien[0][0].tempsDeplacement
             for k in range(len(self.listAlien)):
                 if len(self.listAlien[k]) != 0:
                     if (self.listAlien[k])[len(self.listAlien[k])-1].x+(self.listAlien[k])[len(self.listAlien[k])-1].dx+(self.listAlien[k])[len(self.listAlien[k])-1].alien.width() > self.longueur:
@@ -225,26 +227,36 @@ class SpaceInvader(Tk):
                         for k in range(len(self.listAlien)):
                             for i in range(len(self.listAlien[k])):
                                 self.listAlien[k][i].bord = -1
-            self.déjà = 1
-            time = 2*self.temps_déplacement
-            space.after(int(time),self.réinit)
+            self.deja = 1
+            time = 2*self.tempsDeplacement
+            space.after(int(time),self.reinit)
 
 
-    def réinit(self):
-        self.déjà = 0
+    def reinit(self):
+        '''Role : réinitialiser self.deja à 0'''
+        self.deja = 0
 
 
     def getEntry(self):
-        essaie = self.entreeCode.get()                          # On récupère la saisie de l'utilisateur, puis on rafraichit la zone de texte
+        '''Role : Permet de récupérer le cheatCode saisie par l'utilisateur
+        Entrée : aucune, on va récuperer ce que l'utilisateur va saisir dans l'Entry(zone de texte)
+        Sortie : appel la fonction de verification du code par rapport au code saisie et remet a vide l'Entry '''
+        
+        # On récupère la saisie de l'utilisateur, puis on rafraichit la zone de texte
+        essaie = self.entreeCode.get()
         self.entreeCode.delete(0,END)
-        return self.Vérif_code(essaie)
+        return self.verifCode(essaie)
 
-    def Vérif_code(self,essaie):
+    def verifCode(self,essaie):
+        '''Role : Vérfier si le code de triche saisie fait partie de la liste des differents codes
+        Entrée : essaie (le code de triche saisie) et le dictionnaire contenant les codes et leur valeur
+        Sortie : Rajoute un certains nombres de vies en fonctions du code saisie'''
+        
         for clé in self.cheatCode.keys():
-            if essaie == clé and essaie not in self.code_trouvé:
+            if essaie == clé and essaie not in self.codeTrouve:
                 cVaisseau.vie += int(self.cheatCode[clé])
                 self.text2.set("Lifes : "+str(cVaisseau.vie))
-                self.code_trouvé.append(clé)
+                self.codeTrouve.append(clé)
 
 
 
@@ -268,8 +280,8 @@ class Alien():
         self.dy = 10
         self.a = -1
         self.score_alien = 100
-        self.temps_déplacement_init = 300
-        self.temps_déplacement = self.temps_déplacement_init
+        self.tempsDeplacementInit = 300
+        self.tempsDeplacement = self.tempsDeplacementInit
         self.probaLaser = 30
 
 
@@ -283,11 +295,11 @@ class Alien():
 
         #deplacement uniquement si la partie n'est pas en pause (fini ou non commencer)
         if self.stop == 0:
-            AlienCunter = 1
+            alienCunter = 1
             for k in range(len(space.listAlien)):
                 for i in range(len(space.listAlien[k])):
-                    AlienCunter += 1
-            self.temps_déplacement = self.temps_déplacement_init*(1.04 - 0.04*(space.nbAlientot/AlienCunter))
+                    alienCunter += 1
+            self.tempsDeplacement = self.tempsDeplacementInit*(1.04 - 0.04*(space.nbAlientot/alienCunter))
 
             space.bordAlien()
 
@@ -323,7 +335,7 @@ class Alien():
 
             else:
                 self.can.coords(self.imgAlien,self.x,self.y)
-                space.after(int(self.temps_déplacement),self.deplacementAlien)
+                space.after(int(self.tempsDeplacement),self.deplacementAlien)
 
 
     def laser(self):
